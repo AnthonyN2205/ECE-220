@@ -1,3 +1,11 @@
+; Alnguyn2 - MP2   
+;
+; Description:
+;       This program implements a postfix expression calculator using a stack.
+;       The calculator is able to add, subtract, multiply, divide, and do exponents
+;       using only positive integers 0-9. The expression should be of the form 
+;       ab+, ab-, ab/, etc..., where the expression follows integers 'a' and 'b'.
+;       The value of the expression will be printed out in hexidecimal.
 ;
 ;
 ;
@@ -18,7 +26,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;R3- value to print in hexadecimal
+;
+;R0- hex-value of R3
 PRINT_HEX
+    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;R0 - character input from keyboard
@@ -34,19 +45,30 @@ EVALUATE
 ;input R3, R4
 ;out R0
 PLUS	
-;your code goes here
-	
+	AND R0, R0, #0		; Clear R0
+	ADD	R0, R3, R4		; R0 = R3 + R4
+	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
 ;out R0
 MIN	
-;your code goes here
+	AND R0, R0, #0		; Clear R0
+	NOT R4, R4			; NOT(R4) + 1 to get negative of R4 
+	ADD R4, R4, #1		;
+	ADD R0, R3, R4		; R0 = R3 - R4
+	RET
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
 ;out R0
 MUL	
-;your code goes here
+	AND R0, R0, #0		; Clear R0
+	LDR R0, R3, #0		; Move R3 into R0
+MUL_START
+	ADD R0, R3, #0		; R0 += R3
+	ADD R4, R4, #-1		; decrement R4
+	BRp MUL_START		; if R4 == 0, done
+	RET
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4

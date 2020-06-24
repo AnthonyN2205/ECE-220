@@ -13,42 +13,72 @@
 ;Parse the input until '=' sign
 ;operands get pushed onto the stack
 ;any operators will call the respective functions, perform the task then push the results back onto the stack
+;
+;
+;
+;R3 - operand
+	AND R3, R3, #0
+;R4 - operand
+	AND R4, R4, #0
+;
+;
+
 READ_INPUT
 	IN								; Store and echo input
 	LD	R2, SPACE_ASCII				; Load spaces first
 	ADD R2, R2, R0					; If R2 == 0, read another input
 	BRz	READ_INPUT
 
-CHECK_INPUT
-	LD 	R2, NINE_ASCII				; Check if it's a number
-	ADD R2, R2, R0					
-	BRnz OPERAND					; If it's a number, push to stack
-
-	LD 	R2, EQUAL_ASCII				; Check if '='
-	ADD R2, R2, R0
-	BRz	EVALUATE
-
+PLUS_CHECK
 	LD 	R2, PLUS_ASCII				; Check if '+'
 	ADD R2, R2, R0
-	BRz	PLUS
+	BRnp	MINUS_CHECK				; check for next possible operator
 
+	; operator is '+' so pop two values into R3 & R4 then call PLUS
+	JSR	POP
+	ADD R3, R3, R0					; move 1st operand into register
+	ADD R5, R5, #0					; Check underflow
+	BRp	INVALID_INPUT				; if R5 == 0, failure
+	JSR POP
+	ADD R4, R4, R0					; move 2nd operand into register
+	ADD R5, R5, #0					; Check underflow
+	BRp	INVALID_INPUT			
+	JSR PLUS						; R3 & R4 loaded, call subroutine
+	OUT
+	JSR PUSH
+	BRnzp READ_INPUT				; push result onto stack, read another input
+
+MINUS_CHECK
 	LD 	R2, MINUS_ASCII				; Check if '-'
 	ADD R2, R2, R0
 	BRz	MIN	
 
+MULTIPLY_CHECK
 	LD 	R2, MULT_ASCII				; Check if '*'
 	ADD R2, R2, R0
 	BRz	MUL
 
+DIVIDE_CHECK
 	LD 	R2, DIV_ASCII				; Check if '/'
 	ADD R2, R2, R0
 	BRz	DIV
 
+EQUAL_CHECK
+	LD 	R2, EQUAL_ASCII				; Check if '='
+	ADD R2, R2, R0
+
+; Since we know input must be (0-9) or any of the operations or space, it must be a number if it reached here. We simply push the number
+NUM_CHECK
+	JSR PUSH						; PUSH value onto stack
+	BRnzp READ_INPUT				; read another input after pushing to stack
+
+INVALID_INPUT
 	; If it is none of the above, it's an invalid input
 	LEA R0, INVALID_STRING
 	PUTS
 	LD 	R0, NEWLINE_CHAR
 	OUT
+	HALT
 	BRnzp READ_INPUT	
 
 OPERAND
@@ -86,6 +116,7 @@ MIN
 	NOT R4, R4			; NOT(R4) + 1 to get negative of R4 
 	ADD R4, R4, #1		;
 	ADD R0, R3, R4		; R0 = R3 - R4
+	OUT
 	RET
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

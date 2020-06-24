@@ -62,11 +62,11 @@ MINUS_CHECK
 	AND R4, R4, #0
 
 	JSR	POP
-	ADD R3, R3, R0					
+	ADD R4, R4, R0					; POP second operand 
 	ADD R5, R5, #0					
 	BRp	INVALID_INPUT				
 	JSR POP
-	ADD R4, R4, R0					
+	ADD R3, R3, R0					; POP first operand
 	ADD R5, R5, #0					
 	BRp	INVALID_INPUT			
 
@@ -102,7 +102,25 @@ MULTIPLY_CHECK
 DIVIDE_CHECK
 	LD 	R2, DIV_ASCII				; Check if '/'
 	ADD R2, R2, R0
-	BRz	DIV
+	BRnp EQUAL_CHECK
+
+	; operator is '/' :: Same as PLUS
+	AND R3, R3, #0
+	AND R4, R4, #0
+
+	JSR	POP
+	ADD R4, R4, R0					; POP second operand
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT				
+	JSR POP
+	ADD R3, R3, R0					; POP first operand
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT			
+
+	JSR DIV							; R3 & R4 loaded, call subroutine
+	JSR PRINT_HEX
+	JSR PUSH
+	BRnzp READ_INPUT				; push result onto stack, read another input
 
 EQUAL_CHECK
 	LD 	R2, EQUAL_ASCII				; Check if '='
@@ -216,14 +234,37 @@ MUL_START
 ;input R3, R4
 ;out R0
 DIV	
-;your code goes here
-	
-	
+	AND R0, R0, #0
+	NOT R4, R4					; Complment of second operand
+	ADD R4, R4, #1
+DIV_START
+	ADD R3, R3, R4				; R3 -= R4
+	BRn DIV_END					; Keep R0 >= 0
+	ADD R0, R0, #1				; increment quotient
+	BRnzp DIV_START
+
+DIV_END
+	RET
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
 ;out R0
 EXP
-;your code goes here
+	ST R7, SAVE_R7		; Save R7 to return to first caller
+	ST R4, OP_SAVE		; Save R4 since MUL will modify
+	AND R0, R0, #0		; Clear R0
+	ADD R0, R3, R0		; Move R3 into R0
+
+EXP_START
+	
+	
+
+
+	LD R7, SAVE_R7		; Restore R7
+	RET					; return from first call
+	
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -323,6 +364,9 @@ O_ASCII			.FILL   x0030		; '0' offset
 NINE_ASCII		.FILL	#-57		; '9'
 DEC_CONST		.FILL	#-48		; value for 0 to convert to decimal
 FOUR_COUNT		.FILL 	#4			; value 4 for counters
+
+SAVE_R7			.BLKW	#1			; Save R7 for calling nested subroutines
+OP_SAVE			.BLKW	#1			; Save value for EXP/DIV
 
 INVALID_STRING	.STRINGZ "Invalid Expression"
 NEWLINE_CHAR	.FILL	x000A		; '\n'

@@ -10,19 +10,49 @@
 ;
 ;
 .ORIG x3000
-	
-;your code goes here
-	
+;Parse the input until '=' sign
+;operands get pushed onto the stack
+;any operators will call the respective functions, perform the task then push the results back onto the stack
+READ_INPUT
+	IN								; Store and echo input
+	LD	R2, SPACE_ASCII				; Load spaces first
+	ADD R2, R2, R0					; If R2 == 0, read another input
+	BRz	READ_INPUT
 
+CHECK_INPUT
+	LD 	R2, NINE_ASCII				; Check if it's a number
+	ADD R2, R2, R0					
+	BRnz OPERAND					; If it's a number, push to stack
 
+	LD 	R2, EQUAL_ASCII				; Check if '='
+	ADD R2, R2, R0
+	BRz	EVALUATE
 
+	LD 	R2, PLUS_ASCII				; Check if '+'
+	ADD R2, R2, R0
+	BRz	PLUS
 
+	LD 	R2, MINUS_ASCII				; Check if '-'
+	ADD R2, R2, R0
+	BRz	MIN	
 
+	LD 	R2, MULT_ASCII				; Check if '*'
+	ADD R2, R2, R0
+	BRz	MUL
 
+	LD 	R2, DIV_ASCII				; Check if '/'
+	ADD R2, R2, R0
+	BRz	DIV
 
+	; If it is none of the above, it's an invalid input
+	LEA R0, INVALID_STRING
+	PUTS
+	LD 	R0, NEWLINE_CHAR
+	OUT
+	BRnzp READ_INPUT	
 
-
-
+OPERAND
+	HALT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;R3- value to print in hexadecimal
@@ -143,6 +173,21 @@ POP_SaveR4	.BLKW #1	;
 STACK_END	.FILL x3FF0	;
 STACK_START	.FILL x4000	;
 STACK_TOP	.FILL x4000	;
+
+
+;ASCII Values
+;
+EQUAL_ASCII		.FILL	#-61		; '='
+MULT_ASCII		.FILL	#-42		; '*'
+PLUS_ASCII		.FILL	#-43		; '+'
+MINUS_ASCII		.FILL	#-45		; '-'
+DIV_ASCII		.FILL	#-47		; '/'
+SPACE_ASCII		.FILL	#-32		; ' '
+X_ASCII			.FILL	#-120		; 'x'
+NINE_ASCII		.FILL	#-57		; '9'
+
+INVALID_STRING	.STRINGZ "Invalid Expression"
+NEWLINE_CHAR	.FILL	x000A		; '\n'
 
 
 .END

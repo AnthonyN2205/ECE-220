@@ -35,16 +35,19 @@ PLUS_CHECK
 	BRnp	MINUS_CHECK				; check for next possible operator
 
 	; operator is '+' so pop two values into R3 & R4 then call PLUS
+	AND R3, R3, #0
 	JSR	POP
 	ADD R3, R3, R0					; move 1st operand into register
 	ADD R5, R5, #0					; Check underflow
 	BRp	INVALID_INPUT				; if R5 == 0, failure
+	AND R4, R4, #0
 	JSR POP
 	ADD R4, R4, R0					; move 2nd operand into register
 	ADD R5, R5, #0					; Check underflow
 	BRp	INVALID_INPUT			
+
 	JSR PLUS						; R3 & R4 loaded, call subroutine
-	OUT
+	JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -69,27 +72,70 @@ EQUAL_CHECK
 
 ; Since we know input must be (0-9) or any of the operations or space, it must be a number if it reached here. We simply push the number
 NUM_CHECK
+	JSR CONVERT_DEC					; convert R0 to decimal value before pushing
 	JSR PUSH						; PUSH value onto stack
 	BRnzp READ_INPUT				; read another input after pushing to stack
 
-INVALID_INPUT
-	; If it is none of the above, it's an invalid input
-	LEA R0, INVALID_STRING
-	PUTS
-	LD 	R0, NEWLINE_CHAR
-	OUT
-	HALT
-	BRnzp READ_INPUT	
-
 OPERAND
 	HALT
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Converts hex(R0) to dec(R0)
+; 
+; Input: hex(R0)
+;
+; Output: dec(R0)
+CONVERT_DEC
+	LD R3, DEC_CONST				; load R3 with a const to convert hex->dec
+	ADD R0, R0, R3					; convert R0 to dec
+	RET	
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;R3- value to print in hexadecimal
 ;
 ;R0- hex-value of R3
 PRINT_HEX
-    
+    LD R1, FOUR_COUNT				; R1 = 4 digit counter
+	LD R0, X_ASCII					
+	OUT								; print 'x' for hex
+	AND R0, R0, #0					; clear R0
+
+FOR_EVERY_DIGIT
+	LD R2, FOUR_COUNT				; R2 = 4 bit counter
+
+FOR_EVERY_BIT
+	ADD R0, R0, R0					; left shift both hex value & value we're generating
+	ADD R3, R3, #0					; Check MSB, if 1, add 1 to R0
+	BRzp #1						
+	ADD R0, R0, #1
+	ADD R3, R3, R3
+	ADD R2, R2, #-1					; decrement bit counter
+	BRz	CHECK_DIGIT					; if done with 4 bits, output the digit
+	BRnzp FOR_EVERY_BIT				; otherwise, keep going
+
+CHECK_DIGIT
+	AND R4, R4, #0					; Clear R4
+	ADD R4, R0, #-9					; check if it's a number
+	BRp	LETTER
+
+NUMBER
+	LD R4, O_ASCII					; Load '0' offset
+	ADD R0, R0, R4					; Digit + '0'
+	BRnzp PRINT_DIGIT
+
+LETTER
+	LD R4, A_ASCII					; Load 'A' offset
+	ADD R0, R0, R4					; Add [A:F] offset to R0
+
+PRINT_DIGIT
+	OUT								; output the digit in R0
+	AND R0, R0, #0					; clear R0 for next digit
+	ADD R1, R1, #-1					; decrement digit counter
+	BRz FINISH
+	BRnzp FOR_EVERY_DIGIT
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;R0 - character input from keyboard
@@ -106,7 +152,9 @@ EVALUATE
 ;out R0
 PLUS	
 	AND R0, R0, #0		; Clear R0
-	ADD	R0, R3, R4		; R0 = R3 + R4
+	;ADD	R0, R3, R4		; R0 = R3 + R4
+	ADD R3, R3, R4
+	ADD R0, R0, R3
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
@@ -143,6 +191,23 @@ DIV
 ;out R0
 EXP
 ;your code goes here
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Prints "Invalid Expression"
+;
+INVALID_INPUT
+	; If it is none of the above, it's an invalid input
+	LEA R0, INVALID_STRING
+	PUTS
+	LD 	R0, NEWLINE_CHAR
+	OUT
+	HALT
+	BRnzp READ_INPUT	
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 ;IN:R0, OUT:R5 (0-success, 1-fail/overflow)
 ;R3: STACK_END R4: STACK_TOP
@@ -206,6 +271,10 @@ STACK_START	.FILL x4000	;
 STACK_TOP	.FILL x4000	;
 
 
+FINISH
+	HALT
+
+
 ;ASCII Values
 ;
 EQUAL_ASCII		.FILL	#-61		; '='
@@ -214,8 +283,13 @@ PLUS_ASCII		.FILL	#-43		; '+'
 MINUS_ASCII		.FILL	#-45		; '-'
 DIV_ASCII		.FILL	#-47		; '/'
 SPACE_ASCII		.FILL	#-32		; ' '
-X_ASCII			.FILL	#-120		; 'x'
+X_ASCII			.FILL	x0078		; 'x'
+
+A_ASCII			.FILL	x0037		; Hex letter offset
+O_ASCII			.FILL   x0030		; '0' offset
 NINE_ASCII		.FILL	#-57		; '9'
+DEC_CONST		.FILL	#-48		; value for 0 to convert to decimal
+FOUR_COUNT		.FILL 	#4			; value 4 for counters
 
 INVALID_STRING	.STRINGZ "Invalid Expression"
 NEWLINE_CHAR	.FILL	x000A		; '\n'

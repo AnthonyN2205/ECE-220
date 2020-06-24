@@ -36,11 +36,12 @@ PLUS_CHECK
 
 	; operator is '+' so pop two values into R3 & R4 then call PLUS
 	AND R3, R3, #0
+	AND R4, R4, #0
+
 	JSR	POP
 	ADD R3, R3, R0					; move 1st operand into register
 	ADD R5, R5, #0					; Check underflow
 	BRp	INVALID_INPUT				; if R5 == 0, failure
-	AND R4, R4, #0
 	JSR POP
 	ADD R4, R4, R0					; move 2nd operand into register
 	ADD R5, R5, #0					; Check underflow
@@ -54,12 +55,49 @@ PLUS_CHECK
 MINUS_CHECK
 	LD 	R2, MINUS_ASCII				; Check if '-'
 	ADD R2, R2, R0
-	BRz	MIN	
+	BRnp MULTIPLY_CHECK
+
+	; operator is '-' :: Same as PLUS
+	AND R3, R3, #0
+	AND R4, R4, #0
+
+	JSR	POP
+	ADD R3, R3, R0					
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT				
+	JSR POP
+	ADD R4, R4, R0					
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT			
+
+	JSR MIN							; R3 & R4 loaded, call subroutine
+	JSR PRINT_HEX
+	JSR PUSH
+	BRnzp READ_INPUT				; push result onto stack, read another input
+
 
 MULTIPLY_CHECK
 	LD 	R2, MULT_ASCII				; Check if '*'
 	ADD R2, R2, R0
-	BRz	MUL
+	BRnp DIVIDE_CHECK
+
+	; operator is '*' :: Same as PLUS
+	AND R3, R3, #0
+	AND R4, R4, #0
+
+	JSR	POP
+	ADD R3, R3, R0					
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT				
+	JSR POP
+	ADD R4, R4, R0					
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT			
+
+	JSR MUL							; R3 & R4 loaded, call subroutine
+	JSR PRINT_HEX
+	JSR PUSH
+	BRnzp READ_INPUT				; push result onto stack, read another input
 
 DIVIDE_CHECK
 	LD 	R2, DIV_ASCII				; Check if '/'
@@ -75,9 +113,6 @@ NUM_CHECK
 	JSR CONVERT_DEC					; convert R0 to decimal value before pushing
 	JSR PUSH						; PUSH value onto stack
 	BRnzp READ_INPUT				; read another input after pushing to stack
-
-OPERAND
-	HALT
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -97,6 +132,8 @@ CONVERT_DEC
 ;
 ;R0- hex-value of R3
 PRINT_HEX
+	AND R3, R3, #0
+	ADD R3, R3, R0
     LD R1, FOUR_COUNT				; R1 = 4 digit counter
 	LD R0, X_ASCII					
 	OUT								; print 'x' for hex
@@ -152,9 +189,7 @@ EVALUATE
 ;out R0
 PLUS	
 	AND R0, R0, #0		; Clear R0
-	;ADD	R0, R3, R4		; R0 = R3 + R4
-	ADD R3, R3, R4
-	ADD R0, R0, R3
+	ADD	R0, R3, R4		; R0 = R3 + R4
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
@@ -164,7 +199,6 @@ MIN
 	NOT R4, R4			; NOT(R4) + 1 to get negative of R4 
 	ADD R4, R4, #1		;
 	ADD R0, R3, R4		; R0 = R3 - R4
-	OUT
 	RET
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -172,9 +206,8 @@ MIN
 ;out R0
 MUL	
 	AND R0, R0, #0		; Clear R0
-	LDR R0, R3, #0		; Move R3 into R0
 MUL_START
-	ADD R0, R3, #0		; R0 += R3
+	ADD R0, R0, R3		; R0 += R3
 	ADD R4, R4, #-1		; decrement R4
 	BRp MUL_START		; if R4 == 0, done
 	RET

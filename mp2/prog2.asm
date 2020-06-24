@@ -48,7 +48,7 @@ PLUS_CHECK
 	BRp	INVALID_INPUT			
 
 	JSR PLUS						; R3 & R4 loaded, call subroutine
-	JSR PRINT_HEX
+	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -71,7 +71,7 @@ MINUS_CHECK
 	BRp	INVALID_INPUT			
 
 	JSR MIN							; R3 & R4 loaded, call subroutine
-	JSR PRINT_HEX
+	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -95,7 +95,7 @@ MULTIPLY_CHECK
 	BRp	INVALID_INPUT			
 
 	JSR MUL							; R3 & R4 loaded, call subroutine
-	JSR PRINT_HEX
+	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -118,13 +118,16 @@ DIVIDE_CHECK
 	BRp	INVALID_INPUT			
 
 	JSR DIV							; R3 & R4 loaded, call subroutine
-	JSR PRINT_HEX
+	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
 EQUAL_CHECK
 	LD 	R2, EQUAL_ASCII				; Check if '='
 	ADD R2, R2, R0
+	BRnp NUM_CHECK
+	JSR EVALUATE					; Call evalauate subroutine
+									; Should not return here since we're done
 
 ; Since we know input must be (0-9) or any of the operations or space, it must be a number if it reached here. We simply push the number
 NUM_CHECK
@@ -198,8 +201,20 @@ PRINT_DIGIT
 ;
 ;
 EVALUATE
+	JSR	POP							; POP final answer to load into R6
+	AND R6, R6, #0
+	ADD R6, R6, R0	
 
-;your code goes here
+	; Check if stack is empty
+	LD	R1, STACK_TOP				
+	LD 	R2, STACK_START
+	NOT R1, R1
+	ADD R1, R1, #1
+	ADD R2, R2, R1
+	BRnp INVALID_INPUT				; Stack should be empty, if not, invalid
+
+	JSR PUSH						; PUSH final answer back to stack to print
+	JSR PRINT_HEX
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

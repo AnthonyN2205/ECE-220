@@ -47,8 +47,8 @@ PLUS_CHECK
 	ADD R5, R5, #0					; Check underflow
 	BRp	INVALID_INPUT			
 
+	AND R0, R0, #0					; Clear R0
 	JSR PLUS						; R3 & R4 loaded, call subroutine
-	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -70,8 +70,8 @@ MINUS_CHECK
 	ADD R5, R5, #0					
 	BRp	INVALID_INPUT			
 
+	AND R0, R0, #0					; Clear R0
 	JSR MIN							; R3 & R4 loaded, call subroutine
-	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -94,15 +94,15 @@ MULTIPLY_CHECK
 	ADD R5, R5, #0					
 	BRp	INVALID_INPUT			
 
+	AND R0, R0, #0					; Clear R0
 	JSR MUL							; R3 & R4 loaded, call subroutine
-	;JSR PRINT_HEX
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
 DIVIDE_CHECK
 	LD 	R2, DIV_ASCII				; Check if '/'
 	ADD R2, R2, R0
-	BRnp EQUAL_CHECK
+	BRnp EXP_CHECK
 
 	; operator is '/' :: Same as PLUS
 	AND R3, R3, #0
@@ -117,8 +117,31 @@ DIVIDE_CHECK
 	ADD R5, R5, #0					
 	BRp	INVALID_INPUT			
 
+	AND R0, R0, #0					; Clear R0
 	JSR DIV							; R3 & R4 loaded, call subroutine
-	;JSR PRINT_HEX
+	JSR PUSH
+	BRnzp READ_INPUT				; push result onto stack, read another input
+
+EXP_CHECK
+	LD 	R2, EXP_ASCII				; Check if '^'
+	ADD R2, R2, R0
+	BRnp EQUAL_CHECK
+
+	; operator is '^' :: Same as PLUS
+	AND R3, R3, #0
+	AND R4, R4, #0
+
+	JSR	POP
+	ADD R4, R4, R0					; POP second operand
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT				
+	JSR POP
+	ADD R3, R3, R0					; POP first operand
+	ADD R5, R5, #0					
+	BRp	INVALID_INPUT			
+
+	AND R0, R0, #0					; Clear R0
+	JSR EXP							; R3 & R4 loaded, call subroutine
 	JSR PUSH
 	BRnzp READ_INPUT				; push result onto stack, read another input
 
@@ -197,21 +220,21 @@ PRINT_DIGIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;R0 - character input from keyboard
-;R6 - current numerical output
+;R5 - current numerical output
 ;
 ;
 EVALUATE
-	JSR	POP							; POP final answer to load into R6
-	AND R6, R6, #0
-	ADD R6, R6, R0	
+	JSR	POP							; POP final answer to load into R5
+	AND R5, R5, #0
+	ADD R5, R5, R0	
 
-	; Check if stack is empty
+	; ; Stack should be empty, if not, invalid expression
 	LD	R1, STACK_TOP				
 	LD 	R2, STACK_START
-	NOT R1, R1
+	NOT R1, R1						; TOP - Bottom =? 0
 	ADD R1, R1, #1
 	ADD R2, R2, R1
-	BRnp INVALID_INPUT				; Stack should be empty, if not, invalid
+	BRnp INVALID_INPUT				
 
 	JSR PUSH						; PUSH final answer back to stack to print
 	JSR PRINT_HEX
@@ -221,14 +244,12 @@ EVALUATE
 ;input R3, R4
 ;out R0
 PLUS	
-	AND R0, R0, #0		; Clear R0
 	ADD	R0, R3, R4		; R0 = R3 + R4
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
 ;out R0
 MIN	
-	AND R0, R0, #0		; Clear R0
 	NOT R4, R4			; NOT(R4) + 1 to get negative of R4 
 	ADD R4, R4, #1		;
 	ADD R0, R3, R4		; R0 = R3 - R4
@@ -238,18 +259,15 @@ MIN
 ;input R3, R4
 ;out R0
 MUL	
-	AND R0, R0, #0		; Clear R0
-MUL_START
 	ADD R0, R0, R3		; R0 += R3
 	ADD R4, R4, #-1		; decrement R4
-	BRp MUL_START		; if R4 == 0, done
+	BRp MUL		; if R4 == 0, done
 	RET
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
 ;out R0
 DIV	
-	AND R0, R0, #0
 	NOT R4, R4					; Complment of second operand
 	ADD R4, R4, #1
 DIV_START
@@ -262,25 +280,31 @@ DIV_END
 	RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;input R3, R4
+;input R3, R4 :: Multipling R3 by R3, R4 times
 ;out R0
+;
+;		****R6 is modified****
 EXP
 	ST R7, SAVE_R7		; Save R7 to return to first caller
-	ST R4, OP_SAVE		; Save R4 since MUL will modify
-	AND R0, R0, #0		; Clear R0
-	ADD R0, R3, R0		; Move R3 into R0
+	ST R3, OP_SAVE		; Save operand to restore
+	AND R6, R6, #0		
+	ADD R6, R6, R4		; Use R4 as a counter since it is modified in MUL
+	ADD R6, R6, #-1		; Off-by-1 error
+	AND R4, R4, #0
+	ADD R4, R4, R3		; Move first operand into second operand
 
 EXP_START
-	
-	
+	ADD R6, R6, #0		; if R4 == 0 done
+	BRz	EXP_DONE
 
+	JSR	MUL				; Multiply R3*R3
+	LD R4, OP_SAVE		; Restore second operand
+	ADD R6, R6, #-1		; decrement counter
+	BRnzp EXP_START	
 
+EXP_DONE
 	LD R7, SAVE_R7		; Restore R7
 	RET					; return from first call
-	
-
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Prints "Invalid Expression"
@@ -372,6 +396,7 @@ PLUS_ASCII		.FILL	#-43		; '+'
 MINUS_ASCII		.FILL	#-45		; '-'
 DIV_ASCII		.FILL	#-47		; '/'
 SPACE_ASCII		.FILL	#-32		; ' '
+EXP_ASCII		.FILL	#-94		; '^'
 X_ASCII			.FILL	x0078		; 'x'
 
 A_ASCII			.FILL	x0037		; Hex letter offset

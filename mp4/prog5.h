@@ -15,6 +15,9 @@ void start_game (int* one, int* two, int* three, int* four);
 int make_guess (const char guess_str[], int* one, int* two, 
 		    int* three, int* four);
 
+/* helper function */
+int valid_nums(int w, int x, int y, int z);
+
 #endif /* PROG_4_H */
 
 

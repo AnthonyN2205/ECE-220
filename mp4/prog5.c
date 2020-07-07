@@ -1,3 +1,14 @@
+/* Alnguyn2 - MP4
+ *
+ * This program implements a code-breaking game. The program ask a user to input a seed
+ * then generates 4 random digits from [1,8], obviously hidden to the user. The user must then
+ * try to guess the correct 4 sequence. The program will let the user know how close they are
+ * based on the number of perfect matches and mismatched guesses. The user has 12 guesses to 
+ * figure out the solution
+ *
+ */
+
+
 /*			
  *
  * prog5.c - source file adapted from UIUC ECE198KL Spring 2013 Program 4
@@ -30,7 +41,6 @@ static int solution2;
 static int solution3;
 static int solution4;
 
-
 /*
  * set_seed -- This function sets the seed value for pseudorandom
  * number generation based on the number the user types.
@@ -45,24 +55,18 @@ static int solution4;
  * SIDE EFFECTS: initializes pseudo-random number generation using the function srand. Prints "set_seed: invalid seed\n"
  *               if string is invalid. Prints nothing if it is valid.
  */
-int
-set_seed (const char seed_str[])
-{
-//    Example of how to use sscanf to read a single integer and check for anything other than the integer
-//    "int seed" will contain the number typed by the user (if any) and the string "post" will contain anything after the integer
-//    The user should enter only an integer, and nothing else, so we will check that only "seed" is read. 
-//    We declare
-//    int seed;
-//    char post[2];
-//    The sscanf statement below reads the integer into seed. 
-//    sscanf (seed_str, "%d%1s", &seed, post)
-//    If there is no integer, seed will not be set. If something else is read after the integer, it will go into "post".
-//    The return value of sscanf indicates the number of items read succesfully.
-//    When the user has typed in only an integer, only 1 item should be read sucessfully. 
-//    Check that the return value is 1 to ensure the user enters only an integer. 
-//    Feel free to uncomment these statements, modify them, or delete these comments as necessary. 
-//    You may need to change the return statement below
-   
+int set_seed (const char seed_str[]){
+    int seed;
+    char post[2];
+    
+    /* valid string; set seed */
+    if (sscanf(seed_str, "%d%1s", &seed, post) == 1){
+        srand(seed);
+        return 1;
+    }
+
+    /* invalid string */
+    printf("set_seed: invalid seed\n");
     return 0;
 }
 
@@ -82,11 +86,22 @@ set_seed (const char seed_str[])
  * RETURN VALUE: none
  * SIDE EFFECTS: records the solution in the static solution variables for use by make_guess, set guess_number
  */
-void
-start_game (int* one, int* two, int* three, int* four)
-{
-    //your code here
-    
+void start_game (int* one, int* two, int* three, int* four){
+    guess_number = 1;
+
+    /* creates random number [1,8] */
+    solution1 = rand() % 8 + 1;
+    solution2 = rand() % 8 + 1;
+    solution3 = rand() % 8 + 1;
+    solution4 = rand() % 8 + 1;
+
+    /* assign solution values */
+    *one = solution1;
+    *two = solution2;
+    *three = solution3;
+    *four = solution4;
+
+    printf("%d %d %d %d\n", solution1, solution2, solution3, solution4);
 }
 
 /*
@@ -112,21 +127,69 @@ start_game (int* one, int* two, int* three, int* four)
  *               or an error message (invalid guess)
  *               (NOTE: the output format MUST MATCH EXACTLY, check the wiki writeup)
  */
-int
-make_guess (const char guess_str[], int* one, int* two, 
+int make_guess (const char guess_str[], int* one, int* two, 
 	    int* three, int* four)
 {
-//  One thing you will need to read four integers from the string guess_str, using a process
-//  similar to set_seed
-//  The statement, given char post[2]; and four integers w,x,y,z,
-//  sscanf (guess_str, "%d%d%d%d%1s", &w, &x, &y, &z, post)
-//  will read four integers from guess_str into the integers and read anything else present into post
-//  The return value of sscanf indicates the number of items sucessfully read from the string.
-//  You should check that exactly four integers were sucessfully read.
-//  You should then check if the 4 integers are between 1-8. If so, it is a valid guess
-//  Otherwise, it is invalid.  
-//  Feel free to use this sscanf statement, delete these comments, and modify the return statement as needed
-    return 1;
+    int w,x,y,z;
+    int i, j;
+    char post[2];
+
+    /* place each solution into an array for easier checking */
+    int solutions[4] = {solution1, solution2, solution3, solution4};
+
+    int perfect_guesses = 0;
+    int mismatched_guesses = 0;
+    /* solution/guess paired indices */
+    int paired[4] = {0,0,0,0};
+
+    /* if exactly 4 ints were read and all are within [1,8] */
+    if (sscanf(guess_str, "%d%d%d%d%1s", &w, &x, &y, &z, post) == 4 && valid_nums(w,x,y,z)){
+        *one = w;
+        *two = x; 
+        *three = y;
+        *four = z;
+
+        int guesses[4] = {w,x,y,z};
+
+        /* check for perfect guesses */
+        for (i = 0; i < 4; i++)
+            if (solutions[i] == guesses[i]){
+                paired[i] = 1;
+                perfect_guesses++;
+            }
+
+        /* check for mismatched guesses */
+        for (i = 0; i < 4; i++)
+            for (j = 0; j < 4; j++)
+                /* if guess is not paired check others */
+                if (!paired[i] &&  guesses[i] == solutions[j]){
+                    mismatched_guesses++;
+                    paired[i] = 1;
+                }
+
+        printf("With guess %d, you got %d perfect matches and %d misplaced matches.\n", guess_number, perfect_guesses, mismatched_guesses);
+        
+        /* increment guess count */
+        guess_number++;
+
+        return 1;
+    }
+    
+    /* not a valid guess */
+    printf("make_guess: invalid guess\n");
+    return 0;
+}
+
+/* valid_num(int w, int x, int y, int z) - checks if all numbers are between [1,8]
+ *      
+ * input: numbers to check
+ * output: none
+ *
+ * return values: 0 - false, 1 - true
+ *
+ */
+int valid_nums(int w, int x, int y, int z){
+    return (w > 0 && w < 9 && x > 0 && x < 9 && y > 0 && y < 9 && z > 0 && z < 9);
 }
 
 

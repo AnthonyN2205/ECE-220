@@ -38,7 +38,7 @@ void pascalTriangle(int n){
         for (i = 1; i <= k; i++)
             /* guess C doesn't have compound assignemnts :( */
             coef = coef * (n + 1 - i) / i;
-
+        
         /* print coef */
         printf("%li ", coef);
     }

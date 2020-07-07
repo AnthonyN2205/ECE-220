@@ -225,8 +225,7 @@ PRINT_DIGIT
 ;
 EVALUATE
 	JSR	POP							; POP final answer to load into R5
-	AND R5, R5, #0
-	ADD R5, R5, R0	
+	ST R0, OP_SAVE					; save final answer to get later
 
 	; ; Stack should be empty, if not, invalid expression
 	LD	R1, STACK_TOP				
@@ -385,6 +384,7 @@ STACK_TOP	.FILL x4000	;
 
 
 FINISH
+	LD R5, OP_SAVE					; Place final answer into R5
 	HALT
 
 

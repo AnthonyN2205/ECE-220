@@ -101,7 +101,7 @@ void start_game (int* one, int* two, int* three, int* four){
     *three = solution3;
     *four = solution4;
 
-    printf("%d %d %d %d\n", solution1, solution2, solution3, solution4);
+    //printf("%d %d %d %d\n", solution1, solution2, solution3, solution4);
 }
 
 /*

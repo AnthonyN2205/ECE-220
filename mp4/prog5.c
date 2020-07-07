@@ -139,10 +139,12 @@ int make_guess (const char guess_str[], int* one, int* two,
 
     int perfect_guesses = 0;
     int mismatched_guesses = 0;
-    /* solution/guess paired indices */
-    int paired[4] = {0,0,0,0};
 
-    /* if exactly 4 ints were read and all are within [1,8] */
+    /* solution/guess paired indices */
+    int paired_guesses[4] = {0,0,0,0};
+    int paired_solutions[4] = {0,0,0,0};
+
+    /* only if exactly 4 int values were read and the numbers are [1,8] */
     if (sscanf(guess_str, "%d%d%d%d%1s", &w, &x, &y, &z, post) == 4 && valid_nums(w,x,y,z)){
         *one = w;
         *two = x; 
@@ -154,18 +156,24 @@ int make_guess (const char guess_str[], int* one, int* two,
         /* check for perfect guesses */
         for (i = 0; i < 4; i++)
             if (solutions[i] == guesses[i]){
-                paired[i] = 1;
+                paired_guesses[i] = 1;
+                paired_solutions[i] = 1;
                 perfect_guesses++;
             }
 
-        /* check for mismatched guesses */
+        /* for any unpaired guesses, check for a solution */
         for (i = 0; i < 4; i++)
-            for (j = 0; j < 4; j++)
-                /* if guess is not paired check others */
-                if (!paired[i] &&  guesses[i] == solutions[j]){
-                    mismatched_guesses++;
-                    paired[i] = 1;
-                }
+            if (!paired_guesses[i])
+                /* guess is unpaired, now search for an unpaired solution */
+                for (j = 0; j < 4; j++)
+                    if (!paired_solutions[j] && solutions[j] == guesses[i]){
+                        paired_guesses[i] = 1;
+                        paired_solutions[j] = 1;
+                        mismatched_guesses++;
+
+                        /* stop the loop if we found a solution, otherwise we search repeated values */
+                        break;
+                    }
 
         printf("With guess %d, you got %d perfect matches and %d misplaced matches.\n", guess_number, perfect_guesses, mismatched_guesses);
         

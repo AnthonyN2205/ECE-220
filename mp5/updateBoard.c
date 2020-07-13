@@ -1,20 +1,31 @@
 
-/* validCell - checks if the given [row][col] indicies are within the boundaries of the board.
- *             a valid index is [0, boardRowSize*boardColSize - 1]
+
+/* keep track of the old board before updating it */
+int *oldBoard;
+
+
+/* validCell - Checks (in row-major order) if the current (row,col) index is within [0, boardRowSize*boardColSize-1];
  *
- * inputs: boardRowSize - how many rows on board
+ * inputs: 
+ *         board - 1-D game board
+ *         boardRowSize - how many rows on board
  *         boardColSize - how many cols on board
  *         row - current row index
  *         col - current col index
- * 
- * outputs: 0 - false, not within boundaries
- *          1 - true, within boundaries
+ *         count - neighbor count
+ *
+ * outputs: none
+ *
  */
-int validCell(int boardRowSize, int boardColSize, int row, int col){
+void validCell(int *board, int boardRowSize, int boardColSize, int row, int col, int *count){
     /* row-major order = row*BoardColSize + col */
     int index = row*boardColSize + col;
 
-    return (index >= 0 && index < (boardRowSize*boardColSize)-1);
+    /* check if it's a valid index */
+    if (index >= 0 && index < (boardRowSize*boardColSize)-1)
+        /* if it's alive, then increment neighbor count */
+        if (board[index])
+            count++;
 }
 
 
@@ -33,15 +44,30 @@ int validCell(int boardRowSize, int boardColSize, int row, int col){
  */
 
 int countLiveNeighbor(int* board, int boardRowSize, int boardColSize, int row, int col){
-    /* check the 8 adjacent cells of board[row][col] */
-    //int i, j;
-    int neighbors = 0;
+    int *neighbors = 0;
 
-    
+    /* neighbors to check (X is the current index) 
+     *
+     *          A B C
+     *          D X E
+     *          F G H
+     */
 
+    /* check if all these adjacent cells are 1(alive) && valid(within range), neighbors will be incremented if both conditions hold 
+     * 
+     * checking cells in the order of A,B,C, ..., G,H
+     *
+     */
+    validCell(board, boardRowSize, boardColSize, row - 1, col - 1, neighbors);
+    validCell(board, boardRowSize, boardColSize, row - 1, col, neighbors);
+    validCell(board, boardRowSize, boardColSize, row - 1, col + 1, neighbors);
+    validCell(board, boardRowSize, boardColSize, row, col - 1, neighbors);
+    validCell(board, boardRowSize, boardColSize, row, col + 1, neighbors);
+    validCell(board, boardRowSize, boardColSize, row + 1, col - 1, neighbors);
+    validCell(board, boardRowSize, boardColSize, row + 1, col, neighbors);
+    validCell(board, boardRowSize, boardColSize, row + 1, col + 1, neighbors);
 
-
-    return neighbors;
+    return *neighbors;
 }
 /*
  * Update the game board to the next step.
@@ -58,6 +84,8 @@ void updateBoard(int* board, int boardRowSize, int boardColSize) {
     /* check every cell */
     for (i = 0; i < boardRowSize; i++)
         for (j = 0; j < boardColSize; j++){
+            /* save old board before updating */
+            oldBoard[i*boardColSize + j] = board[i*boardColSize + j];
             /* if the current cell is alive, check neighbors */
             if (board[i*boardColSize+j]){
                 /* current cell will die if neighbor count is not 2 or 3 */
@@ -84,6 +112,15 @@ void updateBoard(int* board, int boardRowSize, int boardColSize) {
  * return 0 if the alive cells change for the next step.
  */ 
 int aliveStable(int* board, int boardRowSize, int boardColSize){
+    int i,j;
+
+    for (i = 0; i < boardRowSize; i++)
+        for (j = 0; j < boardColSize; j++)
+            /* if the new board is different than the old board, an alive cell changed */
+            if (oldBoard[i*boardColSize+j] != board[i*boardColSize+j])
+                return 0;
+
+    /* board stayed the same, so we're done */
     return 1;
 }
 

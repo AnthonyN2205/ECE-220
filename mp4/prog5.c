@@ -4,7 +4,7 @@
  * then generates 4 random digits from [1,8], obviously hidden to the user. The user must then
  * try to guess the correct 4 sequence. The program will let the user know how close they are
  * based on the number of perfect matches and mismatched guesses. The user has 12 guesses to 
- * figure out the solution
+ * figure out the solution. 
  *
  */
 
@@ -40,6 +40,19 @@ static int solution1;
 static int solution2;
 static int solution3;
 static int solution4;
+
+
+/* valid_nums -- Checks if all numbers are within the range of [1,8]
+ *      
+ * input: numbers to check
+ * output: none
+ *
+ * return values: 0 - false, 1 - true
+ *
+ */
+int valid_nums(int w, int x, int y, int z){
+    return (w > 0 && w < 9 && x > 0 && x < 9 && y > 0 && y < 9 && z > 0 && z < 9);
+}
 
 /*
  * set_seed -- This function sets the seed value for pseudorandom
@@ -188,16 +201,5 @@ int make_guess (const char guess_str[], int* one, int* two,
     return 0;
 }
 
-/* valid_num(int w, int x, int y, int z) - checks if all numbers are between [1,8]
- *      
- * input: numbers to check
- * output: none
- *
- * return values: 0 - false, 1 - true
- *
- */
-int valid_nums(int w, int x, int y, int z){
-    return (w > 0 && w < 9 && x > 0 && x < 9 && y > 0 && y < 9 && z > 0 && z < 9);
-}
 
 

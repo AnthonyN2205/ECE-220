@@ -31,8 +31,8 @@ int validCell(int *board, int boardRowSize, int boardColSize, int row, int col){
 
     /* check if it's a valid index */
     if (index >= 0 && index < boardRowSize*boardColSize)
-        if (board[index])
         /* if it's alive, then it's a valid neighbor */
+        if (board[index])
             return 1;
 
     return 0;

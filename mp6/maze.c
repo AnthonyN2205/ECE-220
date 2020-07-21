@@ -3,21 +3,6 @@
 #include "maze.h"
 
 
-/* withinBounds - checks if the current (row,col) position is within the maze's bounds
- *
- * inputs: maze - pointer to maze struct
- *         row - current row index
- *         col - current col index
- *
- * outputs: 1 - true
- *          0 - false
- */
-int withinBounds(maze_t *maze, int row, int col){
-    return (row < 0 || row >= maze->height || col < 0 || col >= maze->width);
-}
-
-
-
 /*
  * createMaze -- Creates and fills a maze structure from the given file
  * INPUTS:       fileName - character array containing the name of the maze file
@@ -36,12 +21,13 @@ maze_t * createMaze(char * fileName)
     /* read from file and populate the maze
      *
      * file format:
-     *          row col
+     *          col row
      *          maze layout
      */
     fscanf(file, "%d %d", &maze->width, &maze->height);
 
     int i, j;
+    char c;
     /* create an array of pointers */
     maze->cells = (char**)malloc(maze->height*sizeof(char*));
     /* allocate memory for every row */
@@ -51,14 +37,12 @@ maze_t * createMaze(char * fileName)
     /* populate the maze */
     for (i = 0; i < maze->height; i++)
         for (j = 0; j < maze->width; j++){
-            /* read char from file and assign to cell */
-            char c = fgetc(file);
-
-            /* ignore newline chars */
-            if (c == '\n' || c == '\0')
-                break;
-                
-            maze->cells[i][j] = c;
+            /* ignore newlines */
+            if ((c = fgetc(file)) != '\n')
+                maze->cells[i][j] = c;
+            /* if it is a new line, push j back 1 */
+            else
+                j--;
 
             /* get start and ending cells */
             if (c == START){
@@ -131,14 +115,17 @@ int solveMazeDFS(maze_t * maze, int col, int row)
 {
     /* maze is solved */
     if (col == maze->endColumn && row == maze->endRow){
-        /* restore starting and ending marks */
+        /* restore start and end marks */
         maze->cells[maze->startRow][maze->startColumn] = START;
         maze->cells[maze->endRow][maze->endColumn] = END;
         return 1;
     }
-    /* invalid position */
-    if (!withinBounds(maze,col,row))
-        return 0;
+
+    /* index is outside of bounds */
+    if (row < 0 || row >= maze->height-1 || col < 0 || col >= maze->width-1) return 0;
+    /* non-empty cell */
+    if (maze->cells[row][col] != EMPTY && maze->cells[row][col] != START && maze->cells[row][col] != END) return 0;
+
 
     /* set (row,col) as part of solution */
     maze->cells[row][col] = PATH;

@@ -1,3 +1,14 @@
+/* Alnguyn2 - MP6
+ *
+ * This program is a maze solver that uses backtracking and DFS to find a solution, if it exists.
+ * The program first reads, from file, the dimensions of the maze and then the actual contents of the maze.
+ * From there, it will print the unsolved version of the maze, solve the maze (again, if possible),
+ * then print out the solution to the maze. After trying to solve the maze, any dynamically allocated
+ * memory is freed ensuring no memory leaks.
+ *
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "maze.h"
@@ -95,8 +106,13 @@ void printMaze(maze_t * maze)
     int i, j;
 
     for (i = 0; i < maze->height; i++){
-        for (j = 0; j < maze->width; j++)   
-            printf("%c", maze->cells[i][j]);
+        for (j = 0; j < maze->width; j++){ 
+            if (maze->cells[i][j] == VISITED)
+                printf("%c", EMPTY);
+            else
+                printf("%c", maze->cells[i][j]);
+
+        }
 
         printf("\n");
     }

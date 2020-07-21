@@ -3,6 +3,21 @@
 #include "maze.h"
 
 
+/* withinBounds - checks if the current (row,col) position is within the maze's bounds
+ *
+ * inputs: maze - pointer to maze struct
+ *         row - current row index
+ *         col - current col index
+ *
+ * outputs: 1 - true
+ *          0 - false
+ */
+int withinBounds(maze_t *maze, int row, int col){
+    return (row < 0 || row >= maze->height || col < 0 || col >= maze->width);
+}
+
+
+
 /*
  * createMaze -- Creates and fills a maze structure from the given file
  * INPUTS:       fileName - character array containing the name of the maze file
@@ -35,20 +50,22 @@ maze_t * createMaze(char * fileName)
 
     /* populate the maze */
     for (i = 0; i < maze->height; i++)
-        for (j = 0; j <= maze->width; j++){
+        for (j = 0; j < maze->width; j++){
             /* read char from file and assign to cell */
-            char c = getc(file);
+            char c = fgetc(file);
 
             /* ignore newline chars */
-            if (c != '\n')
-                maze->cells[i][j] = c;
+            if (c == '\n' || c == '\0')
+                break;
+                
+            maze->cells[i][j] = c;
 
             /* get start and ending cells */
-            if (c == 'S'){
+            if (c == START){
                 maze->startRow = i;
                 maze->startColumn = j;
             }
-            else if (c == 'E'){
+            else if (c == END){
                 maze->endRow = i;
                 maze->endColumn = j;
             }
@@ -73,7 +90,7 @@ void destroyMaze(maze_t * maze)
     /* free each row */
     for (i = 0; i < maze->height; i++)
         free(maze->cells[i]);
-        
+
     /* free array pointer */
     free(maze->cells);
     /* free the pointer */
@@ -94,7 +111,7 @@ void printMaze(maze_t * maze)
     int i, j;
 
     for (i = 0; i < maze->height; i++){
-        for (j = 0; j <= maze->width; j++)   
+        for (j = 0; j < maze->width; j++)   
             printf("%c", maze->cells[i][j]);
 
         printf("\n");
@@ -112,6 +129,38 @@ void printMaze(maze_t * maze)
  */ 
 int solveMazeDFS(maze_t * maze, int col, int row)
 {
-    // Your code here. Make sure to replace following line with your own code.
+    /* maze is solved */
+    if (col == maze->endColumn && row == maze->endRow){
+        /* restore starting and ending marks */
+        maze->cells[maze->startRow][maze->startColumn] = START;
+        maze->cells[maze->endRow][maze->endColumn] = END;
+        return 1;
+    }
+    /* invalid position */
+    if (!withinBounds(maze,col,row))
+        return 0;
+
+    /* set (row,col) as part of solution */
+    maze->cells[row][col] = PATH;
+
+    /*    check 4 adjacent cells where X is the current cell
+     *     
+     *           2
+     *         1 X 3
+     *           4
+     */
+
+    // check cell 1 
+    if (solveMazeDFS(maze, col-1, row)) return 1;
+    // check cell 2
+    if (solveMazeDFS(maze, col, row-1)) return 1;
+    // check cell 3
+    if (solveMazeDFS(maze, col+1, row)) return 1;
+    // check cell 4
+    if (solveMazeDFS(maze, col, row+1)) return 1;
+
+    /* unmark and mark as visited */ 
+    maze->cells[row][col] = VISITED;
+
     return 0;
 }

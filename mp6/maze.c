@@ -69,7 +69,15 @@ maze_t * createMaze(char * fileName)
  */
 void destroyMaze(maze_t * maze)
 {
-    
+    int i;
+    /* free each row */
+    for (i = 0; i < maze->height; i++)
+        free(maze->cells[i]);
+        
+    /* free array pointer */
+    free(maze->cells);
+    /* free the pointer */
+    free(maze);
 }
 
 /*

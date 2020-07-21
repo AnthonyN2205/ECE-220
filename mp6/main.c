@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
     printf("\nUnsolved maze:\n");
     printMaze(maze);
-    /*
+ 
     if(solveMazeDFS(maze, maze->startColumn, maze->startRow))
     {
         printf("\nSolved maze:\n");
@@ -37,6 +37,6 @@ int main(int argc, char **argv)
     printf("\nDestroying maze\n");
 
     destroyMaze(maze);
-    */
+
     return 0;
 }

@@ -12,8 +12,52 @@
  */
 maze_t * createMaze(char * fileName)
 {
-    // Your code here. Make sure to replace following line with your own code.
-    return NULL;
+    /* open file for read-only, assumes user ALWAYS inputs valid filename */
+    FILE *file = fopen(fileName, "r");
+
+    /* create maze struct */
+    maze_t *maze = (maze_t*)malloc(sizeof(maze_t));
+
+    /* read from file and populate the maze
+     *
+     * file format:
+     *          row col
+     *          maze layout
+     */
+    fscanf(file, "%d %d", &maze->width, &maze->height);
+
+    int i, j;
+    /* create an array of pointers */
+    maze->cells = (char**)malloc(maze->height*sizeof(char*));
+    /* allocate memory for every row */
+    for (i = 0; i < maze->height; i++)
+        maze->cells[i] = (char*)malloc(maze->width*sizeof(char));
+
+    /* populate the maze */
+    for (i = 0; i < maze->height; i++)
+        for (j = 0; j <= maze->width; j++){
+            /* read char from file and assign to cell */
+            char c = getc(file);
+
+            /* ignore newline chars */
+            if (c != '\n')
+                maze->cells[i][j] = c;
+
+            /* get start and ending cells */
+            if (c == 'S'){
+                maze->startRow = i;
+                maze->startColumn = j;
+            }
+            else if (c == 'E'){
+                maze->endRow = i;
+                maze->endColumn = j;
+            }
+        }
+
+    /* close file */
+    fclose(file);
+
+    return maze;
 }
 
 /*
@@ -25,7 +69,7 @@ maze_t * createMaze(char * fileName)
  */
 void destroyMaze(maze_t * maze)
 {
-    // Your code here.
+    
 }
 
 /*
@@ -39,7 +83,14 @@ void destroyMaze(maze_t * maze)
  */
 void printMaze(maze_t * maze)
 {
-    // Your code here.
+    int i, j;
+
+    for (i = 0; i < maze->height; i++){
+        for (j = 0; j <= maze->width; j++)   
+            printf("%c", maze->cells[i][j]);
+
+        printf("\n");
+    }
 }
 
 /*

@@ -51,7 +51,7 @@ maze_t * createMaze(char * fileName)
             /* ignore newlines */
             if ((c = fgetc(file)) != '\n')
                 maze->cells[i][j] = c;
-            /* if it is a new line, push j back 1 */
+            /* j must be moved back if we read a newline otherwise, cell[i][j] will be populated with nothing */
             else
                 j--;
 
@@ -105,6 +105,7 @@ void printMaze(maze_t * maze)
 {
     int i, j;
 
+    /* prints out each cell of the maze. Any visited cells will be changed back to EMPTY */
     for (i = 0; i < maze->height; i++){
         for (j = 0; j < maze->width; j++){ 
             if (maze->cells[i][j] == VISITED)

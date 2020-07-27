@@ -26,6 +26,9 @@
  *
  */
 int validCell(int *board, int boardRowSize, int boardColSize, int row, int col){
+    /* check if invalid index */
+    if (row < 0 || col < 0 || row >= boardRowSize || col >= boardColSize)
+        return 0;
     /* row-major order */
     int index = row*boardColSize + col;
 

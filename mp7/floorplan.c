@@ -1,5 +1,18 @@
 #include "floorplan.h"
 
+/*
+  Intro Paragraph: For this MP, we are about to implement a floorplanner with optimization
+  design. Even though the optimization engine is already provided. Basically, what we do is
+  to first read the input file and perform slicing operations and generate corresponding
+  postfix tree expressions. Then, we will use the optimization engine to randomly transform
+  the tree to find an optimal design.
+*/
+
+
+
+/*This program will try to use tree to organize shapes in sush a way as the rectangles are organized in a bigger reactangle
+This is very important to circuits designs and organizing things on silicon The trees will be sliced.*/
+
 // Global variables. The global variables will be effectice after the input has been parsed
 // by calling the procedure read_module.
 int num_modules;                                            // # of input modules.
@@ -11,23 +24,22 @@ module_t* modules;                                          // Array for modules
 // - print the information of the slicing tree.
 // - perform the optimization process.
 void floorplan(const char file[]) {
-  
+
   /*printf("\n********************************** MP11 **********************************\n");
 
   // Read the modules from the given input file.
   read_modules(file);
 
-  // Initialize the slicing tree. You can replace the function init_slicing_tree with the function
-  // challenge_init_slicing_tree if you accomplish the challenge implementation.
+  // Initialize the slicing tree.
   node_t* root = init_slicing_tree(NULL, 0);
   int num_nodes = (num_modules << 1) - 1;
   printf("Initial slicing tree: Root=%p, num_nodes=%d, num_modules=%d\n", root, num_nodes, num_modules);
 
-  // Obtain the expression of the initial slicing tree. 
+  // Obtain the expression of the initial slicing tree.
   expression_unit_t* expression = (expression_unit_t*)calloc(num_nodes, sizeof(expression_unit_t));
   get_expression(root, num_nodes, expression);
   printf("Initial expression: ");
-  pnt_expression(expression, num_nodes);     
+  pnt_expression(expression, num_nodes);
   double area = packing(expression, num_nodes);
   printf("Initial area: %.5e\n", area);
   draw_modules("init.png");
@@ -42,7 +54,7 @@ void floorplan(const char file[]) {
   // Output your floorplan.
   printf("Draw floorplan to %s\n", outfile);
   draw_modules(outfile);
-  
+
   printf("********************************** END ***********************************\n");*/
 }
 
@@ -50,132 +62,160 @@ void floorplan(const char file[]) {
 // FUNCTIONS/PROCEDURES YOU HAVE TO FINISH.                                                      //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 // Function: is_leaf_node
-// Return 1 if the given slicing tree node is a leave node, and 0 otherwise.
+// Return 1 if the given slicing tree node is a leaf node, and 0 otherwise.
 int is_leaf_node(node_t* ptr) {
-    /* leaf is when both children are NULL */
-    return (ptr->left == NULL && ptr->right == NULL);
-    
+  // TODO: (remember to modify the return value appropriately)
+  //if prt is a leaf node, then its left and right children must all be NULL. If
+  //one of them is not NULL, we know it's not a leaf node
+  if(ptr->left == NULL && ptr->right == NULL){
+    return 1;
+  }
+  else{
+    return 0;
+  }
+
 }
 
 // Function: is_internal_node
 // Return 1 if the given slicing tree node is an internal node, and 0 otherwise.
 int is_internal_node(node_t* ptr) {
-    /* internal = not a leaf */
-    return !is_leaf_node(ptr);
+  // TODO: (remember to modify the return value appropriately)
+  //same logic as above, we detect if ptr is an internal node by looking at its left child
+  //and right child
+  if(ptr->left != NULL || ptr->right != NULL)
+  {
+    return 1;
+  }
+  else{
+    return 0;
+  }
+
 }
 
 // Function: is_in_subtree
 // Return 1 if the given subtree rooted at node 'b' resides in the subtree rooted at node 'a'.
 int is_in_subtree(node_t* a, node_t* b) {
-    /* if we reach a leaf, b was not found */
-    if (a == NULL)
-      return 0;
-    /* found node b in a */
-    if (a == b)
-      return 1;
-
-    /* recurse left subtree */
-    if(is_in_subtree(a->left, b)) return 1;
-
-    /* recurse right subtree */
-    if (is_in_subtree(a->right, b)) return 1;
-
-    /* b was not found in a */
+  // TODO: (remember to modify the return value appropriately)
+  /*
+    For this function, we'd better to use recursion methods to acheieve the desired task.
+    What I did is set up special cases and base cases, i.e. when a equals to b and they are NULL.
+    Then, I perform the recursion by calling is_in_subtree of a's left child and a's right child.
+  */
+  //special case:
+  if(a == NULL)
+  {
     return 0;
+  }
+  if(b == NULL)
+  {
+    return 1;
+  }
+  //base case:
+  if(a == b)
+  {
+    return 1;
+  }
+  if(a->left == b || a->right == b)
+  {
+    return 1;
+  }
+  //recursive case
+  return (is_in_subtree(a->left, b) || is_in_subtree(a->right, b));
 }
 
 // Procedure: rotate
-// Rotate a module from a given leave node of the slicing tree by 90 degree. That is, the height 
+// Rotate a module from a given leaf node of the slicing tree by 90 degree. That is, the height
 // and the width of the modules are swapped.
 void rotate(node_t* ptr) {
-    int temp = ptr->module->h;
-
-    ptr->module->h = ptr->module->w;
-    ptr->module->w = temp;
+  // TODO: Rotate the module, swapping the width and height.
+  //swap the width and height as instructed
+  int temp = ptr->module->w;
+  ptr->module->w = ptr->module->h;
+  ptr->module->h = temp;
 }
 
 // Procedure: recut
-// Change the cutline of a module in a given internal node of the slicing tree. 
-// If the original cutline is a vertical cutline, the resulting cutline should be changed to 
-// horizontal and vice versa. 
+// Change the cutline of a module in a given internal node of the slicing tree.
+// If the original cutline is a vertical cutline, the resulting cutline should be changed to
+// horizontal and vice versa.
 void recut(node_t* ptr) {
   if(!is_internal_node(ptr)) return;
   assert(ptr->module == NULL && ptr->cutline != UNDEFINED_CUTLINE);
 
-  /* change vertical cutline to honrizontal */
-  if (ptr->cutline == V)
-      ptr->cutline = H;
-  
-  else if (ptr->cutline == H)
-      ptr->cutline = V; 
+  // TODO:
+  //change the cutline mode of the corresponding ptr as instructed
+  if(ptr->cutline == H)
+  {
+    ptr->cutline = V;
+    return;
+  }
+
+  if(ptr->cutline == V)
+  {
+    ptr->cutline = H;
+    return;
+  }
+  return;
 }
 
 // Procedure: swap_module
-// Swap the two modules between two given leave nodes in the slicing tree.
+// Swap the two modules between two given leaf nodes in the slicing tree.
 void swap_module(node_t* a, node_t* b) {
-    if(!is_leaf_node(a) || !is_leaf_node(b)) return;
-    assert(a->module != NULL && a->cutline == UNDEFINED_CUTLINE);
-    assert(b->module != NULL && b->cutline == UNDEFINED_CUTLINE);
+  if(!is_leaf_node(a) || !is_leaf_node(b)) return;
+  assert(a->module != NULL && a->cutline == UNDEFINED_CUTLINE);
+  assert(b->module != NULL && b->cutline == UNDEFINED_CUTLINE); //if undefined cutline, then the modules are numbers
 
-    module_t *temp_module = a->module;
-    a->module = b->module;
-    b->module = temp_module;
+  // TODO:
+  //simply set up a temp and perform swap operations as instructed
+  module_t* temp = a->module;
+  a->module = b->module;
+  b->module = temp;
 }
 
 // Procedure: swap_topology
-// Swap the topology of two subtrees rooted at two given nodes of the slicing tree. 
+// Swap the topology of two subtrees rooted at two given nodes of the slicing tree.
 // The procedure applies "is_in_subtree" first to tell if any of the subtree belongs
-// to a part of the other. 
+// to a part of the other.
 void swap_topology(node_t* a, node_t* b) {
-    if(a == NULL || b == NULL) return;
-    if(a->parent == NULL || b->parent == NULL) return;
-    if(is_in_subtree(a, b) || is_in_subtree(b, a)) return;
-    assert(a->parent != NULL && b->parent != NULL);
 
-    /* temp values */
-    node_t *parentA = a->parent;
-    node_t *parentB = b->parent;
- 
-    /* 4 possible combinations of parent/child relationship 
-     * a == right && b == right
-     * a == right && b == left
-     * a == left  && b == right
-     * a == left  && b == left
-     */
-    if (parentA->right == a && parentB->right == b){
-        a->parent->right = b;
-        a->parent = parentB;
-        b->parent->right = a;
-        b->parent = parentA;
-    }
-    else if (parentA->right == a && parentB->left == b){
-        a->parent->right = b;
-        a->parent = parentB;
-        b->parent->left = a;
-        b->parent = parentA;
-    }
-    else if (parentA->left == a && parentB->right == b){
-        a->parent->left = b;
-        a->parent = parentB;
-        b->parent->right = a;
-        b->parent = parentA;
-    }
-    else if (parentA->left == a && parentB->left == b){
-        a->parent->left = b;
-        a->parent = parentB;
-        b->parent->left = a;
-        b->parent = parentA;
-    }
+  if(a == NULL || b == NULL) return;
+  if(a->parent == NULL || b->parent == NULL) return;
+  if(is_in_subtree(a, b) || is_in_subtree(b, a)) return;
+  assert(a->parent != NULL && b->parent != NULL);
+
+  // TODO:
+  //first we need to swap a with b by detecting if a is the left child of par node
+  //or the right child of par node.
+  node_t* temp_a = a;
+  if(a->parent->left == a)
+  {
+    a->parent->left = b;
+  }
+  if(a->parent->right == a)
+  {
+    a->parent->right = b;
+  }
+///////////////////////////////////
+  if(b->parent->left == b)
+  {
+    b->parent->left = temp_a;
+  }
+  if(b->parent->right == b)
+  {
+    b->parent->right = temp_a;
+  }
+  //then swap parents of a and b
+  node_t* temp_parent = a->parent;
+  a->parent = b->parent;
+  b->parent = temp_parent;
 }
 
 // Procedure: get_expression
 // Perform the post-order traversal on the given slicing tree and stores the polish expression
 // into the given expression array. You should assume the expression array is pre-allocated with
 // size N. In other words, you don't have to perform dynamic memory allocation. In fact, there
-// is no need for you to add any code here, but it would be better if you can understand the 
+// is no need for you to add any code here, but it would be better if you can understand the
 // details of this procedure especially the last two lines where the procedure postfix_traversal
 // is called internally to obtain the expression.
 void get_expression(node_t* root, int N, expression_unit_t* expression) {
@@ -196,56 +236,39 @@ void get_expression(node_t* root, int N, expression_unit_t* expression) {
 // to the given expression array. You should use the pointer "nth" to find out the index of the
 // expression array and write the data accordingly. Notice that the expression array is a sequence
 // of expression units which could be either a module pointer or the cutline type. If the module
-// pointer exists in the expression unit, you should set the corresponding cutline type to 
-// "UNDEFINED_CUTLINE". On the other hand, if the expression unit is a cutline type, you should 
+// pointer exists in the expression unit, you should set the corresponding cutline type to
+// "UNDEFINED_CUTLINE". On the other hand, if the expression unit is a cutline type, you should
 // assign NULL to the corresponding module pointer.
 void postfix_traversal(node_t* ptr, int* nth, expression_unit_t* expression) {
-  
-    if(ptr == NULL) return;
 
-    /* post-order but modified
-     * recurse down left->right->root
-     * at root: if ptr's expression's module unit exists, put cutline to UNDEF and assign ptr's module
-     *          otherwise, do the opposite
-     */
-    postfix_traversal(ptr->left, nth, expression);
-    postfix_traversal(ptr->right, nth, expression);
+  if(ptr == NULL) return;
 
-    /* if root module exists */
-    if (ptr->module){
-        expression[*nth].module = ptr->module;
-        expression[*nth].cutline = UNDEFINED_CUTLINE;
-    }
-    else if (ptr->cutline != UNDEFINED_CUTLINE){
-        expression[*nth].module = NULL;
-        expression[*nth].cutline = ptr->cutline;
-    }
+  // TODO:
+  //I write this part according to the algorithm given by the PPT slides.First I take
+  //care of the left child and right child of ptr by recursively called them. Then I set up
+  //the data in the nth element in the expression array. Then I detect whether it's a leaf node
+  //or an internal node and do the corresponding operations.
+  postfix_traversal(ptr->left, nth, expression);
+  postfix_traversal(ptr->right,nth, expression);
 
-    (*nth)++;
-}
-
-// get_total_resource
-// traverse through the tree and return the sum of all resource for each module
-int get_total_resource(node_t* ptr)
-{
-    int sum = 0;
-
-    if (ptr == NULL)
-        return 0;
-    else
-        return ptr->module->resource;
-
-    /* recurse down left */
-    sum += get_total_resource(ptr->left);
-    /* ruecurse down right */
-    sum += get_total_resource(ptr->right);
-
-    return sum;
+  expression[*nth].module = ptr->module;
+  expression[*nth].cutline = ptr->cutline;
+  //the case when module pointer exists
+  if(expression[*nth].module != NULL)
+  {
+    expression[*nth].cutline = UNDEFINED_CUTLINE;
+    *nth+=1;
+    return;
+  }
+  //the case when expression is a cutline type
+  expression[*nth].module = NULL;
+  *nth+=1;
+  return;
 }
 
 // Procedure: init_slicing_tree
 // Initialize the slicing tree by aligning modules along the horizontal line. In this procedure
-// you should produce a left-skewed tree. The right child of any internal node should be a leave
+// you should produce a left-skewed tree. The right child of any internal node should be a leaf
 // node and the subtree is recursively expanded down to the left. Take 5 modules for an example.
 // The resulting tree should look like:
 /*
@@ -253,23 +276,26 @@ int get_total_resource(node_t* ptr)
                       /  \
                      i1  m0
                     /  \
-                   i2  m1 
+                   i2  m1
                   /  \
                  i3  m2
                 /  \
                m4  m3
-*/ 
-// where the prefix i denotes an internal node (including root), and the prefix m denotes a leave
+*/
+// where the prefix i denotes an internal node (including root), and the prefix m denotes a leaf
 // node. Notice that each node is either an internal in which the cutline type is specified or
-// a leave in which the module pointer is assigned. For an internal node, the value of its module 
-// pointer should be assigned by NULL. For a leave node, the value of its cutline type should be
-// specified as "UNDEFINED_CUTLINE". 
+// a leaf in which the module pointer is assigned. For an internal node, the value of its module
+// pointer should be assigned by NULL. For a leaf node, the value of its cutline type should be
+// specified as "UNDEFINED_CUTLINE".
 //
 // In each recursive step of this function, you are passed by a parent pointer pointing to the
-// parent node of which node you will generate at this step, as well as an integer index n 
+// parent node of which node you will generate at this step, as well as an integer index n
 // indicating the depth of the current recursion and the index of the module array to which the
-// module pointer of the leave node should point to.
+// module pointer of the leaf node should point to.
 //
+//int num_modules;                                            // # of input modules.
+//module_t* modules;                                          // Array for modules.
+
 node_t* init_slicing_tree(node_t* par, int n) {
 
   assert(n >= 0 && n < num_modules);
@@ -307,8 +333,6 @@ node_t* init_slicing_tree(node_t* par, int n) {
   return ptr;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // PREDEFINED FUNCTIONS AND PROCEDURES.                                                          //
 // PLEASE DO NOT MODIFY ANY FIELD STARTING HERE.                                                 //
@@ -325,7 +349,7 @@ int is_overlapped() {
     llxi = modules[i].llx;
     llyi = modules[i].lly;
     urxi = llxi + modules[i].w;
-    uryi = llyi + modules[i].h;       
+    uryi = llyi + modules[i].h;
     for(j=i+1; j<num_modules; ++j) {
      llxj = modules[j].llx;
      llyj = modules[j].lly;
@@ -351,7 +375,7 @@ int is_overlapped() {
 void pnt_expression(expression_unit_t *expression, int N) {
 
   if(!is_valid_expression(expression, N)) {
-    printf("Invalid expression. Can't print. Please check your get_expression procedure.\n");   
+    printf("Invalid expression. Can't print. Please check your get_expression procedure.\n");
     return;
   }
 
@@ -376,12 +400,12 @@ void pnt_modules() {
   for(i=0; i<num_modules; ++i) {
     printf("Module %d is placed at (%d, %d) with height=%d and width=%d\n",
             modules[i].idx,
-            modules[i].llx, 
+            modules[i].llx,
             modules[i].lly,
-            modules[i].h, 
+            modules[i].h,
             modules[i].w);
   }
-} 
+}
 
 // Procedure: write_modules
 // Write the coordinates of each module into a file.
@@ -391,13 +415,13 @@ void write_modules(const char file[]) {
   for(i=0; i<num_modules; ++i) {
     printf("%d %d %d %d %d\n",
             modules[i].idx,
-            modules[i].llx, 
+            modules[i].llx,
             modules[i].lly,
-            modules[i].h, 
+            modules[i].h,
             modules[i].w);
   }
   fclose(ofp);
-} 
+}
 
 // Function: get_module
 // Return the module pointer to the module with the given idx.
@@ -415,6 +439,7 @@ module_t* get_module(int idx) {
 double packing(expression_unit_t* expression, int N) {
 
   if(!is_valid_expression(expression, N)) {
+    //printf("Invalid expression. Can't pack. Please check your get_expression procedure.\n");
     return FLT_MAX;
   }
 
@@ -429,7 +454,7 @@ double packing(expression_unit_t* expression, int N) {
   for(i=0; i<N; ++i) {
     // Module
     if(expression[i].module != NULL) {
-      assert(expression[i].cutline == UNDEFINED_CUTLINE);      
+      assert(expression[i].cutline == UNDEFINED_CUTLINE);
 
       // Adjust the coordinate of the module.
       expression[i].module->llx = 0;
@@ -450,7 +475,7 @@ double packing(expression_unit_t* expression, int N) {
       // Extract the top two clusters.
       cluster_r = stack[--stack_top];
       cluster_l = stack[--stack_top];
-      
+
       // Create a new cluster.
       cluster.beg = cluster_l.beg;
       cluster.end = cluster_r.end;
@@ -469,7 +494,7 @@ double packing(expression_unit_t* expression, int N) {
       }
       // Vertical cutline.
       // - adjust the cluster's width and height.
-      // - adjust the coordinates of modules from the right cluster. 
+      // - adjust the coordinates of modules from the right cluster.
       // - y coordinate doesn't change.
       else {
         for(j=cluster_r.beg; j<=cluster_r.end; ++j) {
@@ -488,7 +513,7 @@ double packing(expression_unit_t* expression, int N) {
   assert(stack_top == 1);
 
   double area = (double)stack[stack_top - 1].w * (double)stack[stack_top - 1].h;
-  
+
   free(stack);
 
   return area;
@@ -527,22 +552,22 @@ int is_valid_expression(expression_unit_t* expression, int N) {
 // Procedure: read_modules
 // Read the modules from a given input file and initialize all required data structure.
 void read_modules(const char file[]) {
- 
+
   int i;
   FILE* ifp = fopen(file, "r");
 
   assert(ifp != NULL);
-  
+
   // Read the number of modules.
   assert(fscanf(ifp, "%d", &num_modules) == 1);
   assert(num_modules >= 2);
-  
+
   // Allocate the memory.
   modules = (module_t*)malloc(num_modules*sizeof(module_t));
 
   // Read the modules one by one.
   for(i=0; i<num_modules; ++i) {
-    assert(fscanf(ifp, "%d %d %d %d", &modules[i].idx, &modules[i].w, &modules[i].h, &modules[i].resource) == 4); 
+    assert(fscanf(ifp, "%d %d %d", &modules[i].idx, &modules[i].w, &modules[i].h) == 3);
     modules[i].llx = 0;
     modules[i].lly = 0;
   }
@@ -571,18 +596,18 @@ int accept_proposal(double current, double proposal, double temperature) {
 
 // Function: get_rand_internal
 node_t* get_rand_internal(node_t** internals, int num_internals) {
-  return internals[rand()%num_internals]; 
+  return internals[rand()%num_internals];
 }
 
-// Function: get_rand_leave
-node_t* get_rand_leave(node_t** leaves, int num_leaves) {
-  return leaves[rand()%num_leaves]; 
+// Function: get_rand_leaf
+node_t* get_rand_leaf(node_t** leaves, int num_leaves) {
+  return leaves[rand()%num_leaves];
 }
 
 // Function: get_random_node
 node_t* get_rand_node(node_t** internals, int num_internals, node_t** leaves, int num_leaves) {
   if(rand()%2) {
-    return get_rand_leave(leaves, num_leaves);
+    return get_rand_leaf(leaves, num_leaves);
   }
   return get_rand_internal(internals, num_internals);
 }
@@ -590,8 +615,10 @@ node_t* get_rand_node(node_t** internals, int num_internals, node_t** leaves, in
 // Function: optimize
 // Optimize the area of the floorplanner.
 double optimize(node_t *root, int num_nodes) {
-  
-  // Storage for leave and internal nodes.
+
+  if(root == NULL) return FLT_MAX;
+
+  // Storage for leaf and internal nodes.
   int head = 0;
   int tail = 0;
   int num_leaves = 0;
@@ -604,7 +631,7 @@ double optimize(node_t *root, int num_nodes) {
 
   while(tail - head) {
     u = queue[head++];
-    
+
     if(u->module) {
       assert(u->cutline == UNDEFINED_CUTLINE);
       leaves[num_leaves++] = u;
@@ -626,7 +653,7 @@ double optimize(node_t *root, int num_nodes) {
   expression_unit_t* best_expression = (expression_unit_t*)malloc(num_nodes*sizeof(expression_unit_t));
   expression_unit_t* curr_expression = (expression_unit_t*)malloc(num_nodes*sizeof(expression_unit_t));
   module_t* best_modules = (module_t*)malloc(num_modules*sizeof(module_t));
-  
+
   int i, key;
   double best_area, curr_area;
   double temperature = 100.0;
@@ -639,36 +666,36 @@ double optimize(node_t *root, int num_nodes) {
   memcpy(best_modules, modules, num_modules*sizeof(module_t));
 
   while(temperature > FROZEN) {
-    
+
     // Generate the neighboring solution.
     for(i=0; i<MAX_NUM_RAND_STEPS; ++i) {
 
       key = rand()%4;
-      
+
       switch(key) {
 
         // Perform recut.
         case 0:
           recut(get_rand_internal(internals, num_internals));
         break;
-        
+
         // Perform rotate.
         case 1:
-          rotate(get_rand_leave(leaves, num_leaves));
+          rotate(get_rand_leaf(leaves, num_leaves));
         break;
-        
+
         // Perform swap_module.
         case 2:
           do {
-            a = get_rand_leave(leaves, num_leaves);
-            b = get_rand_leave(leaves, num_leaves);
+            a = get_rand_leaf(leaves, num_leaves);
+            b = get_rand_leaf(leaves, num_leaves);
           } while(a == b);
           swap_module(a, b);
         break;
-        
+
         // Perform swap_topology.
         default:
-          do {        
+          do {
             a = get_rand_node(internals, num_internals, leaves, num_leaves);
             b = get_rand_node(internals, num_internals, leaves, num_leaves);
           } while(is_in_subtree(a, b) || is_in_subtree(b, a));
@@ -683,7 +710,6 @@ double optimize(node_t *root, int num_nodes) {
         best_area = curr_area;
         copy_expression(best_expression, curr_expression, num_nodes);
         memcpy(best_modules, modules, num_modules*sizeof(module_t));
-        //copy_modules(best_modules, modules, num_modules);
       }
     }
     temperature *= TEMPERATURE_DECREASING_RATE;
@@ -691,86 +717,9 @@ double optimize(node_t *root, int num_nodes) {
 
   memcpy(modules, best_modules, num_modules*sizeof(module_t));
   best_area = packing(best_expression, num_nodes);
- 
-  /*// Secondary optimization.
-  temperature = 100.0;
-  while(temperature > FROZEN) {
-    
-    // Start at a step.
-    copy_expression(curr_expression, best_expression, num_nodes);
-    copy_modules(modules, best_modules, num_modules);
-    
-    // Generate the neighboring solution.
-    for(i=0; i<MAX_NUM_RAND_STEPS; ++i) {
 
-      copy_expression(next_expression, curr_expression, num_nodes);
 
-      key = rand()%4;
-      
-      switch(key) {
 
-        // Perform recut.
-        case 0:
-          do{
-            j = rand() % num_nodes;
-          } while(next_expression[j].cutline == UNDEFINED_CUTLINE);
-          next_expression[j].cutline = next_expression[j].cutline == V ? H : V;
-        break;
-        
-        // Perform rotate.
-        case 1:
-          do{
-            j = rand() % num_nodes;
-          } while(next_expression[j].module == NULL);
-          next_expression[j].module->w = next_expression[j].module->w ^ next_expression[j].module->h;
-          next_expression[j].module->h = next_expression[j].module->w ^ next_expression[j].module->h;
-          next_expression[j].module->w = next_expression[j].module->w ^ next_expression[j].module->h;
-          
-        break;
-        
-        // Perform swap_module.
-        case 2:
-          do {
-            j = rand() % num_nodes;
-            k = rand() % num_nodes;
-          } while(j == k || next_expression[j].module == NULL || next_expression[k].module == NULL);
-          tmp = next_expression[k].module;
-          next_expression[k].module = next_expression[j].module;
-          next_expression[j].module = tmp;
-        break;
-        
-        // Perform swap_topology.
-        default:
-          do {
-            do{
-              j = rand() % num_nodes;
-              k = rand() % num_nodes;
-            } while(j == k);
-            e = next_expression[k];
-            next_expression[k] = next_expression[j];
-            next_expression[j] = e;
-          } while (!is_valid_expression(next_expression, num_nodes));
-        break;
-      }
-
-      // Evaluate the area.
-      curr_area = packing(curr_expression, num_nodes);
-      next_area = packing(next_expression, num_nodes);
-      if(accept_proposal(curr_area, next_area, temperature)){
-        if(next_area < best_area) {
-          best_area = next_area;
-          copy_expression(best_expression, next_expression, num_nodes);
-        }
-        copy_expression(curr_expression, next_expression, num_nodes);
-        curr_area = next_area;
-      }
-    }
-    temperature *= TEMPERATURE_DECREASING_RATE;
-  }
-
-  best_area = packing(best_expression, num_nodes);*/
-
-  
   free(queue);
   free(leaves);
   free(internals);
@@ -780,8 +729,3 @@ double optimize(node_t *root, int num_nodes) {
 
   return best_area;
 }
-
-
-
-
-

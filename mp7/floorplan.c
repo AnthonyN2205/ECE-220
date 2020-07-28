@@ -71,20 +71,14 @@ int is_internal_node(node_t* ptr) {
 // Return 1 if the given subtree rooted at node 'b' resides in the subtree rooted at node 'a'.
 int is_in_subtree(node_t* a, node_t* b) {
     /* if we reach a leaf, b was not found */
-    if (a == NULL)
+    if (a == NULL || b == NULL)
       return 0;
     /* found node b in a */
     if (a == b)
       return 1;
 
-    /* recurse left subtree */
-    if(is_in_subtree(a->left, b)) return 1;
-
-    /* recurse right subtree */
-    if (is_in_subtree(a->right, b)) return 1;
-
-    /* b was not found in a */
-    return 0;
+    /* traverse left and right subtrees to find b */
+    return is_in_subtree(a->left, b) || is_in_subtree(a->right, b);
 }
 
 // Procedure: rotate
@@ -241,6 +235,7 @@ int get_total_resource(node_t* ptr)
     sum += get_total_resource(ptr->right);
 
     return sum;
+    
 }
 
 // Procedure: init_slicing_tree
@@ -271,40 +266,38 @@ int get_total_resource(node_t* ptr)
 // module pointer of the leave node should point to.
 //
 node_t* init_slicing_tree(node_t* par, int n) {
+  
+    assert(n >= 0 && n < num_modules);
 
-  assert(n >= 0 && n < num_modules);
+    node_t *root = (node_t*)malloc(sizeof(node_t));
 
-  // TODO: (remember to remove the following return statement)
-  //For this function, I also follow the algorithm given by the PPT slides by
-  //first memory allocating space for ptr and then allocating memory for ptr's
-  //right child.
-  node_t* ptr = (node_t*)malloc(sizeof(node_t));
+    /* base */
+    if (n == num_modules - 1){
+      par->left = (node_t*)malloc(sizeof(node_t));
+      par->left->module = &modules[n+1];
+      par->left->cutline = UNDEFINED_CUTLINE;
+      par->left->parent = par;
+      par->right = (node_t*)malloc(sizeof(node_t));
+      par->right->module = &modules[n];
+      par->right->cutline = UNDEFINED_CUTLINE;
+      par->right->parent = par;
+      
+      return par->left;
+    }
 
-  //base case:
-  if(n==num_modules-1)
-  {
-    ptr->module = modules + n;
-    ptr->cutline = UNDEFINED_CUTLINE;
-    ptr->parent = par;
-    ptr->left = NULL;
-    ptr->right = NULL;
-    return ptr;
-  }
-  //declare RightChild
-  node_t* RightChild = (node_t*)malloc(sizeof(node_t));
+    /* internal node */
+    root->module = NULL;
+    root->cutline = V;
+    root->parent = par;
+    /* create right node */
+    root->right = (node_t*)malloc(sizeof(node_t));
+    root->right->module = &modules[n];
+    root->right->cutline = UNDEFINED_CUTLINE;
+    root->right->parent = root;
+    /* create left node */
+    root->left = init_slicing_tree(root, n + 1);
 
-  RightChild->module = modules + n;
-  RightChild->cutline = UNDEFINED_CUTLINE;
-  RightChild->parent = ptr;
-  RightChild->left = NULL;
-  RightChild->right = NULL;
-  //internal node
-  ptr->module = NULL;
-  ptr->cutline = V;
-  ptr->parent = par;
-  ptr->right = RightChild;
-  ptr->left = init_slicing_tree(ptr, n+1);
-  return ptr;
+    return root;
 }
 
 

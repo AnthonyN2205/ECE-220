@@ -68,7 +68,7 @@ ImaginaryNumber RealNumber::operator * (const ImaginaryNumber& arg){
 }
 
 ImaginaryNumber RealNumber::operator / (const ImaginaryNumber& arg){
-	return ImaginaryNumber(this->real_component / arg.get_imaginary_component());
+	return ImaginaryNumber(-1*this->real_component / arg.get_imaginary_component());
 }
 
 ComplexNumber RealNumber::operator + (const ComplexNumber& arg){
@@ -84,7 +84,8 @@ ComplexNumber RealNumber::operator * (const ComplexNumber& arg){
 }
 
 ComplexNumber RealNumber::operator / (const ComplexNumber& arg){
-    return ComplexNumber(this->real_component / arg.get_real_component(), this->real_component / arg.get_imaginary_component());
+    double denom = pow(arg.get_real_component(), 2) + pow(arg.get_imaginary_component(), 2);
+    return ComplexNumber((this->real_component * arg.get_real_component())/denom, (-1*this->real_component * arg.get_imaginary_component()) / denom);
 }
 
 string RealNumber::to_String(){

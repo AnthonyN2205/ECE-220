@@ -10,6 +10,8 @@ RealNumber::RealNumber()
 RealNumber::RealNumber(double rval)
 {
     real_component = rval;
+    number_type = REAL;
+
 }
 
 RealNumber::RealNumber( const RealNumber& other )

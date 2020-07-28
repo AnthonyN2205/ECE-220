@@ -10,6 +10,8 @@ ImaginaryNumber::ImaginaryNumber()
 ImaginaryNumber::ImaginaryNumber(double rval)
 {
     imaginary_component = rval;
+    number_type = IMAGINARY;
+
 }
 
 ImaginaryNumber::ImaginaryNumber( const ImaginaryNumber& other )

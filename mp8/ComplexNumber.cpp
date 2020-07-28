@@ -12,6 +12,7 @@ ComplexNumber::ComplexNumber(double rval_real_component, double rval_imaginary_c
 {
     real_component = rval_real_component;
     imaginary_component = rval_imaginary_component;
+    number_type = COMPLEX;
 }
 
 ComplexNumber::ComplexNumber( const ComplexNumber& other )

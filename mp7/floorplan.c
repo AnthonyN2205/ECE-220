@@ -212,11 +212,11 @@ void postfix_traversal(node_t* ptr, int* nth, expression_unit_t* expression) {
     postfix_traversal(ptr->right, nth, expression);
 
     /* if root module exists */
-    if (expression[*nth].module){
+    if (ptr->module){
         expression[*nth].module = ptr->module;
         expression[*nth].cutline = UNDEFINED_CUTLINE;
     }
-    else if (expression[*nth].cutline){
+    else if (ptr->cutline != UNDEFINED_CUTLINE){
         expression[*nth].module = NULL;
         expression[*nth].cutline = ptr->cutline;
     }
@@ -276,31 +276,28 @@ node_t* init_slicing_tree(node_t* par, int n) {
 
   /* create root node for tree */
   node_t *root = (node_t*)malloc(sizeof(node_t));
-
-  /* base */
+  
+  /* leaf */
   if (n == num_modules - 1){
-    root->module = &modules[n];
     root->cutline = UNDEFINED_CUTLINE;
+    root->module = modules + n;
     root->parent = par;
-    root->left = NULL;
-    root->right = NULL;
+
     return root;
   }
 
-  /* right child */
-  node_t *leafNode = (node_t*)malloc(sizeof(node_t));
-  leafNode->left = NULL;
-  leafNode->right = NULL;
-  leafNode->parent = root;
-  leafNode->module = &modules[n];
-
-  /* assign right child to internal and generate new left node */
-  root->right = leafNode;
+  /* internal */
   root->module = NULL;
-  root->cutline = UNDEFINED_CUTLINE;
+  root->cutline = V;
   root->parent = par;
+  /* create right child */
+  root->right = (node_t*)malloc(sizeof(node_t));
+  root->right->parent = root;
+  root->right->module = modules + n;
+  root->right->cutline = UNDEFINED_CUTLINE;
+  /* create left child */
   root->left = init_slicing_tree(root, n + 1);
-
+  
   return root;
 }
 

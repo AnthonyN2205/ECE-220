@@ -4,6 +4,7 @@
 ImaginaryNumber::ImaginaryNumber()
 {
     imaginary_component = 0.0;
+    number_type = IMAGINARY;
 }
 
 ImaginaryNumber::ImaginaryNumber(double rval)

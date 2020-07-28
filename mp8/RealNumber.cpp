@@ -4,6 +4,7 @@
 RealNumber::RealNumber()
 {
     real_component = 0.0;
+    number_type = REAL;
 }
 
 RealNumber::RealNumber(double rval)

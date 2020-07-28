@@ -5,6 +5,7 @@ ComplexNumber::ComplexNumber()
 {
     real_component = 0.0;
     imaginary_component = 0.0;
+    number_type = COMPLEX;
 }
 
 ComplexNumber::ComplexNumber(double rval_real_component, double rval_imaginary_component)

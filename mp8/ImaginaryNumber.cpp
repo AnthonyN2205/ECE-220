@@ -95,19 +95,19 @@ ComplexNumber ImaginaryNumber::operator + (const ComplexNumber& arg)
 ComplexNumber ImaginaryNumber::operator - (const ComplexNumber& arg)
 {
     
-    return ComplexNumber(arg.get_real_component(), this->imaginary_component - arg.get_imaginary_component());
+    return ComplexNumber(-1*arg.get_real_component(), this->imaginary_component - arg.get_imaginary_component());
 }
 
 ComplexNumber ImaginaryNumber::operator * (const ComplexNumber& arg)
 {
     
-    return ComplexNumber(arg.get_imaginary_component() * this->imaginary_component, arg.get_real_component() * this->imaginary_component);
+    return ComplexNumber(-1*arg.get_imaginary_component() * this->imaginary_component, arg.get_real_component() * this->imaginary_component);
 }
 
 ComplexNumber ImaginaryNumber::operator / (const ComplexNumber& arg)
 {
-    
-    return ComplexNumber(arg.get_imaginary_component() / this->imaginary_component, -1*arg.get_real_component() / this->imaginary_component);
+    double denom = pow(arg.get_real_component(), 2) + pow(arg.get_imaginary_component(), 2);
+    return ComplexNumber((this->imaginary_component * arg.get_imaginary_component()) / denom, (this->imaginary_component * arg.get_real_component()) / denom);
 }
 
 string ImaginaryNumber::to_String(){

@@ -72,7 +72,7 @@ ComplexNumber ComplexNumber::operator * (const ComplexNumber& arg)
 ComplexNumber ComplexNumber::operator / (const ComplexNumber& arg)
 {
     double denom = pow(arg.get_real_component(),2) + pow(arg.get_imaginary_component(),2);
-    double realNum = this->real_component * arg.get_real_component() + this->imaginary_component * arg.get_imaginary_component(); 
+    double realNum = this->real_component * arg.get_real_component() + this->imaginary_component * arg.get_imaginary_component();
     double imgNum = this->imaginary_component * arg.get_real_component() - this->real_component * arg.get_imaginary_component();
     return ComplexNumber(realNum/denom, imgNum/denom);
 }
@@ -120,7 +120,7 @@ ComplexNumber ComplexNumber::operator * (const ImaginaryNumber& arg)
 ComplexNumber ComplexNumber::operator / (const ImaginaryNumber& arg)
 {
     
-	return ComplexNumber(this->real_component / arg.get_imaginary_component(), this->imaginary_component / arg.get_imaginary_component());
+	return ComplexNumber(-1*this->real_component / arg.get_imaginary_component(), this->imaginary_component / arg.get_imaginary_component());
 }
 
 string ComplexNumber::to_String(){

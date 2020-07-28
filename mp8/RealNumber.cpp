@@ -1,3 +1,13 @@
+/* Alnguyn2 - MP8
+ *
+ * In this MP, 3 classes, RealNumber, ImaginaryNumber, and ComplexNumber, were implemented using inheritance.
+ * Each of these classes are derived from the base class Number. Each class has their own functions as well as
+ * their overloaded functions for the other number types.
+ *
+ */
+
+
+
 #include "RealNumber.h"
 #include "helper.h"
 

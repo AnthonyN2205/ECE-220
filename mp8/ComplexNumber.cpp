@@ -3,121 +3,123 @@
 
 ComplexNumber::ComplexNumber()
 {
-    /* Your code here */
+    real_component = 0.0;
+    imaginary_component = 0.0;
 }
 
 ComplexNumber::ComplexNumber(double rval_real_component, double rval_imaginary_component)
 {
-    /* Your code here */
+    real_component = rval_real_component;
+    imaginary_component = rval_imaginary_component;
 }
 
 ComplexNumber::ComplexNumber( const ComplexNumber& other )
 {
-    /* Your code here */
+    this->real_component = other.get_real_component();
+    this->imaginary_component = other.get_imaginary_component();
 }
 
 void ComplexNumber::set_real_component (double rval)
 {
-    /* Your code here */
+    this->real_component = rval;
 }
 
 double ComplexNumber::get_real_component() const
 {
-    /* Your code here */
-    return 0.0;
+    return real_component;
 }
 
 void ComplexNumber::set_imaginary_component (double rval)
 {
-    /* Your code here */
+    this->imaginary_component = rval;
 }
 
 double ComplexNumber::get_imaginary_component() const
 {
-    /* Your code here */
-    return 0.0;
+    return imaginary_component;
 }
 
 double ComplexNumber::get_magnitude() const{
-    /* Your code here */
-    return 0.0;
+    
+    return sqrt(pow(real_component,2) + pow(imaginary_component,2));
 }
 
 double ComplexNumber::get_phase() const{
-    /* Your code here */
-    return 0.0;
+    
+    return calculate_phase(real_component, imaginary_component);
 }
 
 ComplexNumber ComplexNumber::operator + (const ComplexNumber& arg)
 {
-    /* Your code here */
-    return ComplexNumber();
+    
+    return ComplexNumber(this->real_component + arg.get_real_component(), this->imaginary_component + arg.get_imaginary_component());
 }
 
 ComplexNumber ComplexNumber::operator - (const ComplexNumber& arg)
 {
-    /* Your code here */
-    return ComplexNumber();
+    
+    return ComplexNumber(this->real_component - arg.get_real_component(), this->imaginary_component - arg.get_imaginary_component());
 }
 
 ComplexNumber ComplexNumber::operator * (const ComplexNumber& arg)
 {
-    /* Your code here */
-
-    return ComplexNumber();
+    double realcomp = this->real_component * arg.get_real_component() - this->imaginary_component * arg.get_imaginary_component();
+    double imgcomp = this->real_component * arg.get_imaginary_component() + this->imaginary_component * arg.get_real_component();
+    return ComplexNumber(realcomp, imgcomp);
 }
 
 ComplexNumber ComplexNumber::operator / (const ComplexNumber& arg)
 {
-    /* Your code here */
-    return ComplexNumber();
+    double denom = pow(arg.get_real_component(),2) + pow(arg.get_imaginary_component(),2);
+    double realNum = this->real_component * arg.get_real_component() + this->imaginary_component * arg.get_imaginary_component(); 
+    double imgNum = this->imaginary_component * arg.get_real_component() - this->real_component * arg.get_imaginary_component();
+    return ComplexNumber(realNum/denom, imgNum/denom);
 }
 
 ComplexNumber ComplexNumber::operator + (const RealNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+	return ComplexNumber(this->real_component + arg.get_real_component(), this->imaginary_component);
 }
 
 ComplexNumber ComplexNumber::operator - (const RealNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(this->real_component - arg.get_real_component(), this->imaginary_component);
 }
 
 ComplexNumber ComplexNumber::operator * (const RealNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(this->real_component * arg.get_real_component(), this->imaginary_component * arg.get_real_component());
 }
 
 ComplexNumber ComplexNumber::operator / (const RealNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(this->real_component / arg.get_real_component(), this->imaginary_component / arg.get_real_component());
 }
 
 ComplexNumber ComplexNumber::operator + (const ImaginaryNumber& arg){
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(this->real_component, this->imaginary_component + arg.get_imaginary_component());
 }
 
 ComplexNumber ComplexNumber::operator - (const ImaginaryNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(this->real_component, this->imaginary_component - arg.get_imaginary_component());
 }
 
 ComplexNumber ComplexNumber::operator * (const ImaginaryNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(-1*this->imaginary_component*arg.get_imaginary_component(), this->real_component * arg.get_imaginary_component());
 }
 
 ComplexNumber ComplexNumber::operator / (const ImaginaryNumber& arg)
 {
-    /* Your code here */
-	return ComplexNumber();
+    
+	return ComplexNumber(this->real_component / arg.get_imaginary_component(), this->imaginary_component / arg.get_imaginary_component());
 }
 
 string ComplexNumber::to_String(){

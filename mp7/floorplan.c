@@ -271,40 +271,37 @@ int get_total_resource(node_t* ptr)
 // module pointer of the leave node should point to.
 //
 node_t* init_slicing_tree(node_t* par, int n) {
-
+  
   assert(n >= 0 && n < num_modules);
 
-  // TODO: (remember to remove the following return statement)
-  //For this function, I also follow the algorithm given by the PPT slides by
-  //first memory allocating space for ptr and then allocating memory for ptr's
-  //right child.
-  node_t* ptr = (node_t*)malloc(sizeof(node_t));
+  /* create root node for tree */
+  node_t *root = (node_t*)malloc(sizeof(node_t));
 
-  //base case:
-  if(n==num_modules-1)
-  {
-    ptr->module = modules + n;
-    ptr->cutline = UNDEFINED_CUTLINE;
-    ptr->parent = par;
-    ptr->left = NULL;
-    ptr->right = NULL;
-    return ptr;
+  /* base */
+  if (n == num_modules - 1){
+    root->module = &modules[n];
+    root->cutline = UNDEFINED_CUTLINE;
+    root->parent = par;
+    root->left = NULL;
+    root->right = NULL;
+    return root;
   }
-  //declare RightChild
-  node_t* RightChild = (node_t*)malloc(sizeof(node_t));
 
-  RightChild->module = modules + n;
-  RightChild->cutline = UNDEFINED_CUTLINE;
-  RightChild->parent = ptr;
-  RightChild->left = NULL;
-  RightChild->right = NULL;
-  //internal node
-  ptr->module = NULL;
-  ptr->cutline = V;
-  ptr->parent = par;
-  ptr->right = RightChild;
-  ptr->left = init_slicing_tree(ptr, n+1);
-  return ptr;
+  /* right child */
+  node_t *leafNode = (node_t*)malloc(sizeof(node_t));
+  leafNode->left = NULL;
+  leafNode->right = NULL;
+  leafNode->parent = root;
+  leafNode->module = &modules[n];
+
+  /* update root then generate a left child */
+  root->right = leafNode;
+  root->module = NULL;
+  root->cutline = UNDEFINED_CUTLINE;
+  root->parent = par;
+  root->left = init_slicing_tree(root, n + 1);
+
+  return root;
 }
 
 

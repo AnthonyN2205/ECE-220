@@ -273,7 +273,7 @@ node_t* init_slicing_tree(node_t* par, int n) {
 
     /* base */
     if (n == num_modules - 1){
-      root->module = &modules[n];
+      root->module = &modules[n+1];
       root->cutline = UNDEFINED_CUTLINE;
       root->parent = par;
 
@@ -286,7 +286,7 @@ node_t* init_slicing_tree(node_t* par, int n) {
     root->parent = par;
     /* create right node */
     root->right = (node_t*)malloc(sizeof(node_t));
-    root->right->module = &modules[n];
+    root->right->module = &modules[n+1];
     root->right->cutline = UNDEFINED_CUTLINE;
     root->right->parent = root;
     /* create left node */
@@ -301,6 +301,8 @@ node_t* init_slicing_tree(node_t* par, int n) {
 // PREDEFINED FUNCTIONS AND PROCEDURES.                                                          //
 // PLEASE DO NOT MODIFY ANY FIELD STARTING HERE.                                                 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 // Function: is_overlapped
 // Return 1 if any overlaps among modules, and 0 otherwise.
@@ -768,6 +770,8 @@ double optimize(node_t *root, int num_nodes) {
 
   return best_area;
 }
+
+
 
 
 

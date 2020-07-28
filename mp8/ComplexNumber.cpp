@@ -119,8 +119,8 @@ ComplexNumber ComplexNumber::operator * (const ImaginaryNumber& arg)
 
 ComplexNumber ComplexNumber::operator / (const ImaginaryNumber& arg)
 {
-    
-	return ComplexNumber(-1*this->real_component / arg.get_imaginary_component(), this->imaginary_component / arg.get_imaginary_component());
+    double denom = pow(arg.get_imaginary_component(), 2);
+	return ComplexNumber((this->imaginary_component * arg.get_imaginary_component()) / denom, (-1*this->real_component * arg.get_imaginary_component()) / denom);
 }
 
 string ComplexNumber::to_String(){

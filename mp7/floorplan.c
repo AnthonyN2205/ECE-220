@@ -273,16 +273,11 @@ node_t* init_slicing_tree(node_t* par, int n) {
 
     /* base */
     if (n == num_modules - 1){
-      par->left = (node_t*)malloc(sizeof(node_t));
-      par->left->module = &modules[n+1];
-      par->left->cutline = UNDEFINED_CUTLINE;
-      par->left->parent = par;
-      par->right = (node_t*)malloc(sizeof(node_t));
-      par->right->module = &modules[n];
-      par->right->cutline = UNDEFINED_CUTLINE;
-      par->right->parent = par;
-      
-      return par->left;
+      root->module = &modules[n];
+      root->cutline = UNDEFINED_CUTLINE;
+      root->parent = par;
+
+      return root;
     }
 
     /* internal node */

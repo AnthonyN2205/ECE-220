@@ -53,13 +53,13 @@ ImaginaryNumber ImaginaryNumber::operator - (const ImaginaryNumber& arg)
 
 RealNumber ImaginaryNumber::operator * (const ImaginaryNumber& arg)
 {
-    return RealNumber(0.0);
+    return RealNumber(-1*this->imaginary_component * arg.get_imaginary_component());
 }
 
 RealNumber ImaginaryNumber::operator / (const ImaginaryNumber& arg)
 {
     
-    return RealNumber(0.0);
+    return RealNumber(this->imaginary_component / arg.get_imaginary_component());
 }
 
 ComplexNumber ImaginaryNumber::operator + (const RealNumber& arg)
@@ -71,7 +71,7 @@ ComplexNumber ImaginaryNumber::operator + (const RealNumber& arg)
 ComplexNumber ImaginaryNumber::operator - (const RealNumber& arg)
 {
     
-    return ComplexNumber(arg.get_real_component(), this->imaginary_component);
+    return ComplexNumber(-1*arg.get_real_component(), this->imaginary_component);
 }
 
 ImaginaryNumber ImaginaryNumber::operator * (const RealNumber& arg)
@@ -83,7 +83,7 @@ ImaginaryNumber ImaginaryNumber::operator * (const RealNumber& arg)
 ImaginaryNumber ImaginaryNumber::operator / (const RealNumber& arg)
 {
     
-    return ImaginaryNumber(arg.get_real_component() / this->imaginary_component);
+    return ImaginaryNumber(this->imaginary_component / arg.get_real_component());
 }
 
 ComplexNumber ImaginaryNumber::operator + (const ComplexNumber& arg)

@@ -212,11 +212,11 @@ void postfix_traversal(node_t* ptr, int* nth, expression_unit_t* expression) {
     postfix_traversal(ptr->right, nth, expression);
 
     /* if root module exists */
-    if (ptr->module){
+    if (expression[*nth].module){
         expression[*nth].module = ptr->module;
         expression[*nth].cutline = UNDEFINED_CUTLINE;
     }
-    else if (ptr->cutline){
+    else if (expression[*nth].cutline){
         expression[*nth].module = NULL;
         expression[*nth].cutline = ptr->cutline;
     }
@@ -294,7 +294,7 @@ node_t* init_slicing_tree(node_t* par, int n) {
   leafNode->parent = root;
   leafNode->module = &modules[n];
 
-  /* update root then generate a left child */
+  /* assign right child to internal and generate new left node */
   root->right = leafNode;
   root->module = NULL;
   root->cutline = UNDEFINED_CUTLINE;

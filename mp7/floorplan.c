@@ -1,3 +1,13 @@
+/* Alnguyn2 - MP7
+ *
+ * This MP implemented a basic VLSI system floor planner. The program uses a slicing tree and an 
+ * optimization system (provided to us) to minimize the area of the floor plan. The required functions
+ * were focused on traversing and using a tree data structure. Postfix traversal was used to traverse the tree
+ * when searching for information. The tree that is built is a left-sided skew tree.
+ *
+ */
+
+
 #include "floorplan.h"
 
 // Global variables. The global variables will be effectice after the input has been parsed

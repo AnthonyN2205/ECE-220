@@ -223,16 +223,9 @@ void postfix_traversal(node_t* ptr, int* nth, expression_unit_t* expression) {
 int get_total_resource(node_t* ptr)
 {
     int sum = 0;
-
-    if (ptr == NULL)
-        return 0;
-    else
-        return ptr->module->resource;
-
-    /* recurse down left */
-    sum += get_total_resource(ptr->left);
-    /* ruecurse down right */
-    sum += get_total_resource(ptr->right);
+    int i;
+    for (i = 0; i < num_modules; i++)
+      sum += modules[i].resource;
 
     return sum;
     
@@ -273,7 +266,7 @@ node_t* init_slicing_tree(node_t* par, int n) {
 
     /* base */
     if (n == num_modules - 1){
-      root->module = &modules[n+1];
+      root->module = &modules[n];
       root->cutline = UNDEFINED_CUTLINE;
       root->parent = par;
 
@@ -285,10 +278,11 @@ node_t* init_slicing_tree(node_t* par, int n) {
     root->cutline = V;
     root->parent = par;
     /* create right node */
-    root->right = (node_t*)malloc(sizeof(node_t));
-    root->right->module = &modules[n+1];
-    root->right->cutline = UNDEFINED_CUTLINE;
-    root->right->parent = root;
+    node_t * rightNode = (node_t*)malloc(sizeof(node_t));
+    root->right = rightNode;
+    rightNode->cutline = UNDEFINED_CUTLINE;
+    rightNode->module = &modules[n];
+    rightNode->parent = root;
     /* create left node */
     root->left = init_slicing_tree(root, n + 1);
 

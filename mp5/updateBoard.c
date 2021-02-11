@@ -7,7 +7,6 @@
  * based on the current board. The current state of the board must be saved into a temp board
  * and then updating after calculating the next state of the board.
  * 
- *
  */
 
 
